@@ -4,6 +4,7 @@ mod asteroid;
 mod game;
 mod myrand;
 mod explosion;
+mod bullet;
 
 use game::GameObjectType;
 use wasm_bindgen::prelude::*;
@@ -13,6 +14,7 @@ use vmath::Vector;
 use rocket::Rocket;
 use asteroid::Asteroid;
 use explosion::Explosion;
+use bullet::Bullet;
 use game::GameObject;
 use game::GameArea;
 use game::Area;
@@ -97,13 +99,19 @@ impl Game {
             sprite_on: clone_sprite( &rocket_thrust_on),
             sprite_off: clone_sprite( &rocket_thrust_off)
         };
-        let exp1 = Explosion {
-            time: 0.0,
+        let bullet: Bullet = Bullet {
             position: Vector {
                 x: 300.0,
                 y: 300.0
             },
-            image: clone_sprite( &explosion_sprite),
+            speed: Vector {
+                x: 250.0,
+                y: 250.0
+            },
+            start_position: Vector {
+                x: 300.0,
+                y: 300.0
+            }
         };
         Game {
             game_area: Area {  // Game area
@@ -117,7 +125,7 @@ impl Game {
             shapes: vec![
                 Box::new( rocket1),
                 Box::new( rocket2),
-                Box::new( exp1)]
+                Box::new( bullet)]
         }
     }
 
