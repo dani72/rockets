@@ -98,4 +98,12 @@ impl GameObject for Rocket {
         self.status();
     }
 
+    fn set_sprite_on( &mut self, sprite: HtmlImageElement) {
+        self.sprite_on = Some(sprite);
+    }
+
+    fn set_sprite_off( &mut self, sprite: HtmlImageElement) {
+        self.sprite_off = Some(sprite);
+    }   
+
 }

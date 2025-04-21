@@ -1,11 +1,13 @@
 mod vmath;
 mod rocket;
+mod game;
 
 use wasm_bindgen::prelude::*;
 use web_sys::{window, HtmlCanvasElement, CanvasRenderingContext2d, HtmlImageElement};
 use js_sys::Date;
 use vmath::Vector;
 use rocket::Rocket;
+use game::GameObject;
 
 // For better error messages in case of panics
 #[wasm_bindgen(start)]
@@ -16,23 +18,14 @@ pub fn start() {
 #[wasm_bindgen]
 pub struct Game {
     t: i64,
-    shapes: Vec<Rocket>,
-}
-
-trait GameObject {
-    fn move_t(&mut self, delta_t: f64);
-    fn render(&mut self, ctx: &CanvasRenderingContext2d);
-    fn thrust_inc( &mut self);
-    fn thrust_dec( &mut self);
-    fn rotate_right( &mut self);
-    fn rotate_left( &mut self);
+    shapes: Vec<Box<dyn GameObject>>,
 }
 
 #[wasm_bindgen]
 impl Game {
     #[wasm_bindgen(constructor)]
     pub fn new() -> Game {
-        let circle = Rocket {
+        let rocket1 = Rocket {
             name: "Rocket1".to_string(),
             position: Vector {
                 x: 480.0,
@@ -51,7 +44,7 @@ impl Game {
             sprite_on: None,
             sprite_off: None
         };
-        let circle2 = Rocket {
+        let rocket2 = Rocket {
             name: "Rocket2".to_string(),
             position: Vector {
                 x: 300.0,
@@ -72,7 +65,9 @@ impl Game {
         };
         Game {
             t: Self::now_ms(),
-            shapes: vec![circle, circle2],
+            shapes: vec![
+                Box::new( rocket1),
+                Box::new( rocket2)]
         }
     }
 
@@ -85,8 +80,8 @@ impl Game {
         img1.set_src( &image.src());
         img2.set_src( &image.src());
 
-        self.shapes[0].sprite_on = Some(img1);
-        self.shapes[1].sprite_on = Some(img2);
+        self.shapes[0].set_sprite_on( img1);
+        self.shapes[1].set_sprite_on( img2);
     }
 
     pub fn set_rocket_thrust_off(&mut self, image: HtmlImageElement) {
@@ -98,8 +93,8 @@ impl Game {
         img1.set_src( &image.src());
         img2.set_src( &image.src());
 
-        self.shapes[0].sprite_off = Some(img1);
-        self.shapes[1].sprite_off = Some(img2);
+        self.shapes[0].set_sprite_off (img1);
+        self.shapes[1].set_sprite_off (img2);
     }
 
 
