@@ -117,8 +117,10 @@ impl Game {
         }
     }
 
-    pub fn add_asteroids( &mut self) {
-        for i in 0..10 {
+    pub fn create_asteroids( &mut self, nof : i32) {
+        let mut i = 0;
+
+        while i < nof  {
             let asteroid = Asteroid {
                 name: "Asteroid".to_string(),
                 expired: false,
@@ -139,6 +141,8 @@ impl Game {
             };
 
             self.shapes.push( Box::new( asteroid));
+
+            i+=1;
         }
     }
 
@@ -237,6 +241,11 @@ impl Game {
             shape.render( &self.ctx);
         }
         
+        if self.shapes.len() == 0 {
+            web_sys::console::log_1(&JsValue::from_str("You win!"));
+            self.create_asteroids(20);
+        }
+
         Ok(())
     }
 
