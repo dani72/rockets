@@ -25,8 +25,9 @@
                 const rocketThrustOn = await loadImage("./assets/rocket_thrust_on.png");
                 const rocketThrustOff = await loadImage("./assets/rocket_thrust_off.png");
                 const asteroid = await loadImage("./assets/asteroid.png");
+                const ctx = document.getElementById("game-canvas").getContext("2d");
 
-                const game = new Game( asteroid, rocketThrustOn, rocketThrustOff);
+                const game = new Game( asteroid, rocketThrustOn, rocketThrustOff, ctx);
 
                 game.add_asteroids();
 

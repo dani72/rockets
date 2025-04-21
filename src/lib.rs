@@ -5,13 +5,14 @@ mod game;
 mod myrand;
 
 use wasm_bindgen::prelude::*;
-use web_sys::{window, HtmlCanvasElement, CanvasRenderingContext2d, HtmlImageElement};
+use web_sys::{window, CanvasRenderingContext2d, HtmlImageElement};
 use js_sys::Date;
 use vmath::Vector;
 use rocket::Rocket;
 use asteroid::Asteroid;
 use game::GameObject;
 use game::GameArea;
+use game::Area;
 use myrand::random_number;
 
 pub fn clone_sprite( image: &HtmlImageElement) -> HtmlImageElement{
@@ -23,12 +24,8 @@ pub fn clone_sprite( image: &HtmlImageElement) -> HtmlImageElement{
 }
 
 impl GameArea for Game {
-    fn height(&self) -> f64 {
-        self.height
-    }
-
-    fn width(&self) -> f64 {
-        self.width
+    fn area( &self) -> Area {
+        self.game_area.clone()
     }
 }
 
@@ -40,9 +37,9 @@ pub fn start() {
 
 #[wasm_bindgen]
 pub struct Game {
-    width: f64,
-    height: f64,
+    game_area: Area,
     ast : HtmlImageElement,
+    ctx: CanvasRenderingContext2d,
     t: i64,
     shapes: Vec<Box<dyn GameObject>>,
 }
@@ -50,7 +47,7 @@ pub struct Game {
 #[wasm_bindgen]
 impl Game {
     #[wasm_bindgen(constructor)]
-    pub fn new( asteroid_sprite: HtmlImageElement, rocket_thrust_on: HtmlImageElement, rocket_thrust_off: HtmlImageElement ) -> Game {
+    pub fn new( asteroid_sprite: HtmlImageElement, rocket_thrust_on: HtmlImageElement, rocket_thrust_off: HtmlImageElement, rendering_context: CanvasRenderingContext2d ) -> Game {
         let rocket1 = Rocket {
             name: "Rocket1".to_string(),
             position: Vector {
@@ -90,8 +87,11 @@ impl Game {
             sprite_off: clone_sprite( &rocket_thrust_off)
         };
         Game {
-            width: 1000.0,
-            height: 600.0,
+            game_area: Area {  // Game area
+                width: 1000.0,
+                height: 600.0,
+            },
+            ctx: rendering_context,
             ast: asteroid_sprite,
             t: Self::now_ms(),
             shapes: vec![
@@ -132,47 +132,19 @@ impl Game {
         let delta_t = Self::now_ms() - self.t;
 
         for shape in self.shapes.iter_mut() {
-            shape.move_t( delta_t as f64 / 1000.0);
+            shape.move_t( delta_t as f64 / 1000.0, self.game_area.clone());
         }
 
         self.t = Self::now_ms();
     }
 
     pub fn render(&mut self) -> Result<(), JsValue> {
-        // Get the document
-        let document = window()
-            .ok_or_else(|| JsValue::from_str("No global window exists"))?
-            .document()
-            .ok_or_else(|| JsValue::from_str("No document exists"))?;
-        
-        // Get the canvas
-        let canvas = document
-            .get_element_by_id("game-canvas")
-            .ok_or_else(|| JsValue::from_str("No canvas found with id 'game-canvas'"))?;
-        
-        let canvas: HtmlCanvasElement = canvas
-            .dyn_into::<HtmlCanvasElement>()
-            .map_err(|_| JsValue::from_str("Element is not a canvas"))?;
-        
-        // Get the context
-        let context = canvas
-            .get_context("2d")
-            .map_err(|_| JsValue::from_str("Failed to get 2d context"))?
-            .ok_or_else(|| JsValue::from_str("No 2d context found"))?
-            .dyn_into::<CanvasRenderingContext2d>()
-            .map_err(|_| JsValue::from_str("Context is not a 2d context"))?;
-        
-        // Update game state
         self.update();
         
-        // Clear canvas
-        context.clear_rect(0.0, 0.0, canvas.width() as f64, canvas.height() as f64);
+        self.ctx.clear_rect(0.0, 0.0, self.game_area.width, self.game_area.height);
         
-        // Draw circle
-        context.begin_path();
-
         for shape in self.shapes.iter_mut() {
-            shape.render( &context);
+            shape.render( &self.ctx);
         }
         
         Ok(())

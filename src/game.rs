@@ -1,7 +1,7 @@
 use web_sys::CanvasRenderingContext2d;
 
 pub trait GameObject {
-    fn move_t(&mut self, delta_t: f64);
+    fn move_t(&mut self, delta_t: f64, game_area: Area);
     fn render(&mut self, ctx: &CanvasRenderingContext2d);
     fn thrust_inc( &mut self);
     fn thrust_dec( &mut self);
@@ -9,7 +9,11 @@ pub trait GameObject {
     fn rotate_left( &mut self);
 }
 
+#[derive(Clone)]
+pub struct Area {
+    pub width: f64,
+    pub height: f64,
+}
 pub trait GameArea {
-    fn width(&self) -> f64;
-    fn height(&self) -> f64;
+    fn area( &self) -> Area;
 }

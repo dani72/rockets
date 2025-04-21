@@ -1,7 +1,7 @@
 use web_sys::{ CanvasRenderingContext2d, HtmlImageElement, console};
 use crate::vmath::Vector;
 use crate::game::GameObject;
-use crate::game::GameArea;
+use crate::game::Area;
 
 pub struct Asteroid {
     pub name: String,
@@ -19,11 +19,11 @@ impl Asteroid {
 }
 
 impl GameObject for Asteroid {
-    fn move_t(&mut self, delta_t: f64) {
+    fn move_t(&mut self, delta_t: f64, game_area: Area) {
         self.speed = self.speed.add( &self.acc.scale(delta_t));
         self.position = self.position.add( &self.speed.scale(delta_t));
 
-        if self.position.x > 1000.0 {
+        if self.position.x > game_area.width {
             self.position.x = 0.0;
         }
 
@@ -31,7 +31,7 @@ impl GameObject for Asteroid {
             self.position.x = 1000.0;
         }
 
-        if self.position.y > 600.0 {
+        if self.position.y > game_area.height {
             self.position.y = 0.0;
         }
 
