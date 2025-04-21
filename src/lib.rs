@@ -47,7 +47,12 @@ pub struct Game {
 #[wasm_bindgen]
 impl Game {
     #[wasm_bindgen(constructor)]
-    pub fn new( asteroid_sprite: HtmlImageElement, rocket_thrust_on: HtmlImageElement, rocket_thrust_off: HtmlImageElement, rendering_context: CanvasRenderingContext2d ) -> Game {
+    pub fn new( game_width: f64,
+                game_height: f64,
+                asteroid_sprite: HtmlImageElement, 
+                rocket_thrust_on: HtmlImageElement, 
+                rocket_thrust_off: HtmlImageElement, 
+                rendering_context: CanvasRenderingContext2d ) -> Game {
         let rocket1 = Rocket {
             name: "Rocket1".to_string(),
             position: Vector {
@@ -88,8 +93,8 @@ impl Game {
         };
         Game {
             game_area: Area {  // Game area
-                width: 1000.0,
-                height: 600.0,
+                width: game_width,
+                height: game_height,
             },
             ctx: rendering_context,
             ast: asteroid_sprite,

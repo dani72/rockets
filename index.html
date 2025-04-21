@@ -5,7 +5,7 @@
     <title>Rockets!</title>
 </head>
 <body>
-    <canvas id="game-canvas" width="1000" height="600" style="border:1px solid black;"></canvas>
+    <canvas id="game-canvas" width="2000" height="1000" style="border:1px solid black;"></canvas>
     <script type="module">
         import init, { Game } from "./pkg/canvas_rust_game.js";
 
@@ -25,9 +25,10 @@
                 const rocketThrustOn = await loadImage("./assets/rocket_thrust_on.png");
                 const rocketThrustOff = await loadImage("./assets/rocket_thrust_off.png");
                 const asteroid = await loadImage("./assets/asteroid.png");
-                const ctx = document.getElementById("game-canvas").getContext("2d");
+                const canvas = document.getElementById("game-canvas");
+                const ctx = canvas.getContext("2d");
 
-                const game = new Game( asteroid, rocketThrustOn, rocketThrustOff, ctx);
+                const game = new Game( canvas.width, canvas.height, asteroid, rocketThrustOn, rocketThrustOff, ctx);
 
                 game.add_asteroids();
 
