@@ -65,6 +65,7 @@ impl ActiveObject for Rocket {
 
     fn fire( &mut self) -> Box<dyn GameObject> {
         let bullet = Bullet {
+            expired: false,
             start_position: self.position.clone(),
             position: self.position.clone(),
             speed: Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale( 250.0).add( &self.speed)

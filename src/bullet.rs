@@ -6,6 +6,7 @@ use crate::game::Area;
 use wasm_bindgen::JsValue;
 
 pub struct Bullet {
+    pub expired: bool,
     pub start_position: Vector,
     pub position: Vector,
     pub speed: Vector,
@@ -22,11 +23,11 @@ impl GameObject for Bullet {
     }
 
     fn expire( &mut self) {
-
+        self.expired = true;
     }
 
     fn is_expired( &self) -> bool {
-        return self.position.distance( &self.start_position) > 700.0;
+        return self.expired || (self.position.distance( &self.start_position) > 700.0);
     }
 
     fn can_collide( &self) -> bool {

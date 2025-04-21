@@ -51,6 +51,7 @@ pub struct Game {
     exp : HtmlImageElement,
     ctx: CanvasRenderingContext2d,
     t: i64,
+    bullets: Vec<Box<dyn GameObject>>,
     shapes: Vec<Box<dyn GameObject>>,
 }
 
@@ -64,61 +65,45 @@ impl Game {
                 rocket_thrust_off: HtmlImageElement,
                 explosion_sprite: HtmlImageElement,
                 rendering_context: CanvasRenderingContext2d ) -> Game {
-        let lrocket1 = Rocket {
-            name: "Rocket1".to_string(),
-            position: Vector {
-                x: 480.0,
-                y: 100.0
-            },
-            rotation: 0.0,
-            speed: Vector {
-                x: 0.0,
-                y: 0.0
-            },
-            acc : Vector {
-                x: 0.0,
-                y: 0.0
-            },
-            thrust: 0.0,
-            sprite_on: clone_sprite( &rocket_thrust_on),
-            sprite_off: clone_sprite( &rocket_thrust_off)
-        };
-        let lrocket2 = Rocket {
-            name: "Rocket2".to_string(),
-            position: Vector {
-                x: 300.0,
-                y: 50.0,
-            },
-            rotation: 0.0,
-            speed: Vector {
-                x: 0.0,
-                y: 0.0
-            },
-            acc : Vector {
-                x: 0.0,
-                y: 0.0
-            },
-            thrust: 0.0,
-            sprite_on: clone_sprite( &rocket_thrust_on),
-            sprite_off: clone_sprite( &rocket_thrust_off)
-        };
-        let bullet: Bullet = Bullet {
-            position: Vector {
-                x: 300.0,
-                y: 300.0
-            },
-            speed: Vector {
-                x: 250.0,
-                y: 250.0
-            },
-            start_position: Vector {
-                x: 300.0,
-                y: 300.0
-            }
-        };
         Game {
-            rocket1: lrocket1,
-            rocket2: lrocket2,
+            rocket1: Rocket {
+                name: "Rocket1".to_string(),
+                position: Vector {
+                    x: 480.0,
+                    y: 100.0
+                },
+                rotation: 0.0,
+                speed: Vector {
+                    x: 0.0,
+                    y: 0.0
+                },
+                acc : Vector {
+                    x: 0.0,
+                    y: 0.0
+                },
+                thrust: 0.0,
+                sprite_on: clone_sprite( &rocket_thrust_on),
+                sprite_off: clone_sprite( &rocket_thrust_off)
+            },
+            rocket2: Rocket {
+                name: "Rocket2".to_string(),
+                position: Vector {
+                    x: 300.0,
+                    y: 50.0,
+                },
+                rotation: 0.0,
+                speed: Vector {
+                    x: 0.0,
+                    y: 0.0
+                },
+                acc : Vector {
+                    x: 0.0,
+                    y: 0.0
+                },
+                thrust: 0.0,
+                sprite_on: clone_sprite( &rocket_thrust_on),
+                sprite_off: clone_sprite( &rocket_thrust_off)
+            },
             game_area: Area {  // Game area
                 width: game_width,
                 height: game_height,
@@ -127,8 +112,8 @@ impl Game {
             ast: asteroid_sprite,
             exp: explosion_sprite,
             t: Self::now_ms(),
-            shapes: vec![
-                Box::new( bullet)]
+            bullets: vec![],
+            shapes: vec![]
         }
     }
 
@@ -163,9 +148,13 @@ impl Game {
 
     fn update(&mut self) {
         let delta_t = (Self::now_ms() - self.t) as f64 / 1000.0;
+        
+        self.rocket1.move_t( delta_t, self.game_area.clone());
+        self.rocket2.move_t( delta_t, self.game_area.clone());
 
-        &self.rocket1.move_t( delta_t, self.game_area.clone());
-        &self.rocket2.move_t( delta_t, self.game_area.clone());
+        for bullet in self.bullets.iter_mut() {
+            bullet.move_t( delta_t, self.game_area.clone());
+        }
 
         for shape in self.shapes.iter_mut() {
             shape.move_t( delta_t, self.game_area.clone());
@@ -204,12 +193,36 @@ impl Game {
         if let Some( explosion) = expl {
             self.shapes.push( Box::new( explosion));
         }
+
+        let mut expl2: Option<Explosion> = None;
+
+        for bullet in self.bullets.iter_mut() {
+            for shape in self.shapes.iter_mut() {
+                if bullet.current_position().distance( &shape.current_position()) < 30.0 {
+                    if matches!( shape.get_type(), GameObjectType::Asteroid) {
+                        bullet.expire();
+                        shape.expire();
+                        expl2 = Some( Explosion {
+                            time: 0.0,
+                            position: shape.current_position(),
+                            image: clone_sprite( &self.exp)
+                        });
+                    }
+                }
+            }
+        }
+
+        if let Some( explosion) = expl2 {
+            self.shapes.push( Box::new( explosion));
+        }
+
     }
 
     pub fn render(&mut self) -> Result<(), JsValue> {
         self.update();
         self.check_collisions();
         
+        self.bullets.retain( |x| !x.is_expired());
         self.shapes.retain( |x| !x.is_expired());
 
         self.ctx.clear_rect(0.0, 0.0, self.game_area.width, self.game_area.height);
@@ -217,6 +230,9 @@ impl Game {
         self.rocket1.render( &self.ctx);
         self.rocket2.render( &self.ctx);
 
+        for bullet in self.bullets.iter_mut() {
+            bullet.render( &self.ctx);
+        }
         for shape in self.shapes.iter_mut() {
             shape.render( &self.ctx);
         }
@@ -248,7 +264,7 @@ impl Game {
         web_sys::console::log_1(&JsValue::from_str("space pressed"));
         let bullet = self.rocket1.fire();
 
-        self.shapes.push( bullet)
+        self.bullets.push( bullet)
     }
 
     pub fn a_pressed(&mut self) {
