@@ -1,4 +1,4 @@
-use web_sys::{ CanvasRenderingContext2d, HtmlImageElement, console};
+use web_sys::{ CanvasRenderingContext2d, HtmlImageElement};
 use crate::vmath::Vector;
 use crate::game::GameObject;
 use crate::game::GameObjectType;
@@ -24,15 +24,11 @@ impl GameObject for Explosion {
         return self.time > 1.0;
     }
 
-    fn can_collide( &self) -> bool {
-        return false;
-    }
-
     fn expire( &mut self) {
 
     }
 
-    fn move_t(&mut self, delta_t: f64, game_area: Area) {
+    fn move_t(&mut self, delta_t: f64, _game_area: Area) {
         self.time += delta_t;
     }
 

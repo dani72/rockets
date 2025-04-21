@@ -14,13 +14,11 @@ use vmath::Vector;
 use rocket::Rocket;
 use asteroid::Asteroid;
 use explosion::Explosion;
-use bullet::Bullet;
 use game::GameObject;
 use game::ActiveObject;
-use game::GameArea;
 use game::Area;
 use myrand::random_number;
-use std::ptr;
+use vmath::ZERO;
 
 pub fn clone_sprite( image: &HtmlImageElement) -> HtmlImageElement{
     let document = window().unwrap().document().unwrap();
@@ -28,12 +26,6 @@ pub fn clone_sprite( image: &HtmlImageElement) -> HtmlImageElement{
     img1.set_src( &image.src());
 
     return img1;
-}
-
-impl GameArea for Game {
-    fn area( &self) -> Area {
-        self.game_area.clone()
-    }
 }
 
 // For better error messages in case of panics
@@ -68,38 +60,20 @@ impl Game {
         Game {
             rocket1: Rocket {
                 name: "Rocket1".to_string(),
-                position: Vector {
-                    x: 480.0,
-                    y: 100.0
-                },
+                position: Vector { x: 480.0, y: 100.0 },
                 rotation: 0.0,
-                speed: Vector {
-                    x: 0.0,
-                    y: 0.0
-                },
-                acc : Vector {
-                    x: 0.0,
-                    y: 0.0
-                },
+                speed: ZERO,
+                acc : ZERO,
                 thrust: 0.0,
                 sprite_on: clone_sprite( &rocket_thrust_on),
                 sprite_off: clone_sprite( &rocket_thrust_off)
             },
             rocket2: Rocket {
                 name: "Rocket2".to_string(),
-                position: Vector {
-                    x: 300.0,
-                    y: 50.0,
-                },
+                position: Vector { x: 300.0, y: 50.0 },
                 rotation: 0.0,
-                speed: Vector {
-                    x: 0.0,
-                    y: 0.0
-                },
-                acc : Vector {
-                    x: 0.0,
-                    y: 0.0
-                },
+                speed: ZERO,
+                acc : ZERO,
                 thrust: 0.0,
                 sprite_on: clone_sprite( &rocket_thrust_on),
                 sprite_off: clone_sprite( &rocket_thrust_off)
@@ -122,21 +96,11 @@ impl Game {
 
         while i < nof  {
             let asteroid = Asteroid {
-                name: "Asteroid".to_string(),
                 expired: false,
-                position: Vector {
-                    x: 20.0 * random_number(),
-                    y: 15.0 * random_number()
-                },
+                position: Vector { x: 20.0 * random_number(), y: 15.0 * random_number() },
                 rotation: 0.0,
-                speed: Vector {
-                    x: 5.0 + random_number(),
-                    y: 5.0 - random_number()
-                },
-                acc : Vector {
-                    x: 0.0,
-                    y: 0.0
-                },
+                speed: Vector { x: 5.0 + random_number(), y: 5.0 - random_number() },
+                acc : ZERO,
                 image: clone_sprite( &self.ast)
             };
 

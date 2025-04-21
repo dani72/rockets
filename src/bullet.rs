@@ -1,9 +1,8 @@
-use web_sys::{ CanvasRenderingContext2d, HtmlImageElement, console};
+use web_sys::CanvasRenderingContext2d;
 use crate::vmath::Vector;
 use crate::game::GameObject;
 use crate::game::GameObjectType;
 use crate::game::Area;
-use wasm_bindgen::JsValue;
 
 pub struct Bullet {
     pub expired: bool,
@@ -15,7 +14,7 @@ pub struct Bullet {
 impl GameObject for Bullet {
 
     fn get_type( &self) -> GameObjectType {
-        return GameObjectType::Explosion;
+        return GameObjectType::Bullet;
     }
 
     fn current_position(&self) -> Vector {
@@ -30,18 +29,15 @@ impl GameObject for Bullet {
         return self.expired || (self.position.distance( &self.start_position) > 700.0);
     }
 
-    fn can_collide( &self) -> bool {
-        return false;
-    }
-
-    fn move_t(&mut self, delta_t: f64, game_area: Area) {
+    fn move_t(&mut self, delta_t: f64, _game_area: Area) {
         self.position = self.position.add( &self.speed.scale(delta_t));
     }
 
     fn render(&mut self, ctx: &CanvasRenderingContext2d) {
         ctx.begin_path();
         ctx.arc( self.position.x, self.position.y, 3.0, 0.0, std::f64::consts::PI * 2.0).unwrap();
-        ctx.set_fill_style(&JsValue::from_str("red"));
+        ctx.set_fill_style_str( "red");
+    
         ctx.fill();
     }
 }

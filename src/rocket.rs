@@ -6,7 +6,6 @@ use crate::game::GameObject;
 use crate::game::Area;
 use crate::game::GameObjectType;
 use crate::bullet::Bullet;
-use crate::vmath::GRAVITY;
 
 pub struct Rocket {
     pub name: String,
@@ -92,10 +91,6 @@ impl GameObject for Rocket {
     fn is_expired( &self) -> bool {
         return false;
     }
-
-    fn can_collide( &self) -> bool {
-        return true;
-    }   
 
     fn move_t(&mut self, delta_t: f64, game_area: Area) {
         self.speed = self.speed.add( &self.acc.scale(delta_t));

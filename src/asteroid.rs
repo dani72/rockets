@@ -1,11 +1,10 @@
-use web_sys::{ CanvasRenderingContext2d, HtmlImageElement, console};
+use web_sys::{ CanvasRenderingContext2d, HtmlImageElement};
 use crate::game::GameObjectType;
 use crate::vmath::Vector;
 use crate::game::GameObject;
 use crate::game::Area;
 
 pub struct Asteroid {
-    pub name: String,
     pub expired: bool,
     pub position: Vector,
     pub rotation: f64,
@@ -15,9 +14,6 @@ pub struct Asteroid {
  }
 
 impl Asteroid {
-    fn status( &mut self) {
-        console::log_1( &format!("{}: x = {}, y = {} (Speed {}, {}) (Acc {} {})", self.name, self.position.x, self.position.y, self.speed.x, self.speed.y, self.acc.x, self.acc.y).into());
-    }
 }
 
 impl GameObject for Asteroid {
@@ -36,10 +32,6 @@ impl GameObject for Asteroid {
 
     fn is_expired( &self) -> bool {
         return self.expired;
-    }
-
-    fn can_collide( &self) -> bool {
-        return true;
     }
 
     fn move_t(&mut self, delta_t: f64, game_area: Area) {

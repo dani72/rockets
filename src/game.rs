@@ -5,7 +5,7 @@ pub enum GameObjectType {
     Asteroid,
     Rocket,
     Explosion,
-    Bullet
+    Bullet,
 }
 
 pub trait GameObject {
@@ -15,7 +15,6 @@ pub trait GameObject {
     fn get_type( &self) -> GameObjectType;
     fn current_position( &self) -> Vector;
     fn is_expired( &self) -> bool;
-    fn can_collide( &self) -> bool;
 
     fn expire( &mut self);
 }
@@ -32,7 +31,4 @@ pub trait ActiveObject : GameObject {
 pub struct Area {
     pub width: f64,
     pub height: f64,
-}
-pub trait GameArea {
-    fn area( &self) -> Area;
 }
