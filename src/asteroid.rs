@@ -33,7 +33,7 @@ impl GameObject for Asteroid {
         }
 
         if self.position.x < 0.0 {
-            self.position.x = 1000.0;
+            self.position.x = game_area.width;
         }
 
         if self.position.y > game_area.height {
@@ -41,7 +41,7 @@ impl GameObject for Asteroid {
         }
 
         if self.position.y < 0.0 {
-            self.position.y = 600.0;
+            self.position.y = game_area.height;
         }
     }
 
