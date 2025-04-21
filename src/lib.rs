@@ -1,14 +1,11 @@
 mod vmath;
+mod rocket;
 
-use js_sys::Reflect::set_f64;
 use wasm_bindgen::prelude::*;
-use web_sys::{window, Document, HtmlCanvasElement, CanvasRenderingContext2d, KeyboardEvent, HtmlImageElement};
+use web_sys::{window, HtmlCanvasElement, CanvasRenderingContext2d, HtmlImageElement};
 use js_sys::Date;
-use web_sys::console;
-use std::cell::RefCell;
-use std::rc::Rc;
 use vmath::Vector;
-use std::f64::consts::FRAC_PI_2;
+use rocket::Rocket;
 
 // For better error messages in case of panics
 #[wasm_bindgen(start)]
@@ -19,119 +16,16 @@ pub fn start() {
 #[wasm_bindgen]
 pub struct Game {
     t: i64,
-    x: f64,
-    y: f64,
     shapes: Vec<Rocket>,
-
 }
 
 trait GameObject {
     fn move_t(&mut self, delta_t: f64);
     fn render(&mut self, ctx: &CanvasRenderingContext2d);
-    fn thrust_on( &mut self);
-    fn thrust_off( &mut self);
-    fn thrust_right( &mut self);
-    fn thrust_left( &mut self);
-}
-
-
-
-struct Rocket {
-    name: String,
-    position: Vector,
-    rotation: f64,
-    speed: Vector,
-    acc: Vector,
-    thrust: f64,
-    sprite_on: Option<HtmlImageElement>,
-    sprite_off: Option<HtmlImageElement>
- }
-
-impl Rocket {
-    fn status( &mut self) {
-        console::log_1( &format!("{}: x = {}, y = {} (Speed {}, {}) (Acc {} {}) (Thrust {})", self.name, self.position.x, self.position.y, self.speed.x, self.speed.y, self.acc.x, self.acc.y, self.thrust).into());
-    }
-
-    fn update_acc( &mut self) {
-        self.acc = Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale(self.thrust);
-    }
-}
-
-impl GameObject for Rocket {
-    fn move_t(&mut self, delta_t: f64) {
-
-        self.speed = self.speed.add( &self.acc.scale(delta_t));
-        let gravity = Vector::new(0.0, 9.81);
-        self.position = self.position.add( &self.acc.add( &gravity).scale(delta_t));
-    }
-
-    fn render(&mut self, ctx: &CanvasRenderingContext2d) {
-
-        if self.thrust > 0.0 {
-            if let Some(sprite) = &self.sprite_on {
-                ctx.save();
-                ctx.translate(self.position.x, self.position.y).unwrap();          // Move to sprite position
-                ctx.rotate( self.rotation).unwrap();        // Rotate around that point
-                ctx.draw_image_with_html_image_element_and_dw_and_dh(
-                    sprite,
-                    - (sprite.width() as f64 / 2.0),
-                    - (sprite.height() as f64 / 2.0),
-                    sprite.width() as f64,
-                    sprite.height() as f64,
-                ).unwrap();
-                ctx.restore();
-            }
-        }
-        else {
-            if let Some(sprite) = &self.sprite_off {
-                ctx.save();
-                ctx.translate(self.position.x, self.position.y).unwrap();          // Move to sprite position
-                ctx.rotate( self.rotation).unwrap();        // Rotate around that point
-                ctx.draw_image_with_html_image_element_and_dw_and_dh(
-                    sprite,
-                    - (sprite.width() as f64 / 2.0),
-                    - (sprite.height() as f64 / 2.0),
-                    sprite.width() as f64,
-                    sprite.height() as f64,
-                ).unwrap();
-                ctx.restore();
-            }
-
-        }
-    }
-
-    fn thrust_off( &mut self) {
-        if self.thrust > 0.0 {
-            self.thrust -= 1.0;
-        }
-
-        self.update_acc();
-        self.status();
-    }
-
-    fn thrust_on( &mut self) {
-        if self.thrust < 20.0 {
-            self.thrust += 1.0;
-        }
-
-        self.update_acc();
-        self.status();
-    }
-
-    fn thrust_right( &mut self) {
-        self.rotation += 0.1;
-
-        self.update_acc();
-        self.status();
-    }
-
-    fn thrust_left( &mut self) {
-        self.rotation -= 0.1;
-
-        self.update_acc();
-        self.status();
-    }
-
+    fn thrust_inc( &mut self);
+    fn thrust_dec( &mut self);
+    fn rotate_right( &mut self);
+    fn rotate_left( &mut self);
 }
 
 #[wasm_bindgen]
@@ -178,8 +72,6 @@ impl Game {
         };
         Game {
             t: Self::now_ms(),
-            x: 200.0,
-            y: 200.0,
             shapes: vec![circle, circle2],
         }
     }
@@ -267,41 +159,41 @@ impl Game {
 
     pub fn up_pressed(&mut self) {
         web_sys::console::log_1(&JsValue::from_str("up pressed"));
-        self.shapes[0].thrust_on();
+        self.shapes[0].thrust_inc();
     }
 
     pub fn down_pressed(&mut self) {
         web_sys::console::log_1(&JsValue::from_str("down pressed"));
-        self.shapes[0].thrust_off();
+        self.shapes[0].thrust_dec();
     }
 
     pub fn left_pressed(&mut self) {
         web_sys::console::log_1(&JsValue::from_str("left pressed"));
-        self.shapes[0].thrust_left();
+        self.shapes[0].rotate_left();
     }
 
     pub fn right_pressed(&mut self) {
         web_sys::console::log_1(&JsValue::from_str("right pressed"));
-        self.shapes[0].thrust_right();
+        self.shapes[0].rotate_right();
     }
 
     pub fn a_pressed(&mut self) {
         web_sys::console::log_1(&JsValue::from_str("left pressed"));
-        self.shapes[1].thrust_left();
+        self.shapes[1].rotate_left();
     }
 
     pub fn d_pressed(&mut self) {
         web_sys::console::log_1(&JsValue::from_str("right pressed"));
-        self.shapes[1].thrust_right();
+        self.shapes[1].rotate_right();
     }
 
     pub fn w_pressed(&mut self) {
         web_sys::console::log_1(&JsValue::from_str("up pressed"));
-        self.shapes[1].thrust_on();
+        self.shapes[1].thrust_inc();
     }
 
     pub fn x_pressed(&mut self) {
         web_sys::console::log_1(&JsValue::from_str("down pressed"));
-        self.shapes[1].thrust_off();
+        self.shapes[1].thrust_dec();
     }
 }

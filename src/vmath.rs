@@ -4,6 +4,7 @@ pub struct Vector {
     pub y: f64
 }
 
+pub const GRAVITY: Vector = Vector{ x: 0.0, y: 9.81};
 
 impl Vector {
     pub fn new(x: f64, y: f64) -> Self {
