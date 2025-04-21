@@ -8,3 +8,8 @@ pub trait GameObject {
     fn rotate_right( &mut self);
     fn rotate_left( &mut self);
 }
+
+pub trait GameArea {
+    fn width(&self) -> f64;
+    fn height(&self) -> f64;
+}

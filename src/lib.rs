@@ -2,6 +2,7 @@ mod vmath;
 mod rocket;
 mod asteroid;
 mod game;
+mod myrand;
 
 use wasm_bindgen::prelude::*;
 use web_sys::{window, HtmlCanvasElement, CanvasRenderingContext2d, HtmlImageElement};
@@ -10,6 +11,8 @@ use vmath::Vector;
 use rocket::Rocket;
 use asteroid::Asteroid;
 use game::GameObject;
+use game::GameArea;
+use myrand::random_number;
 
 pub fn clone_sprite( image: &HtmlImageElement) -> HtmlImageElement{
     let document = window().unwrap().document().unwrap();
@@ -19,6 +22,15 @@ pub fn clone_sprite( image: &HtmlImageElement) -> HtmlImageElement{
     return img1;
 }
 
+impl GameArea for Game {
+    fn height(&self) -> f64 {
+        self.height
+    }
+
+    fn width(&self) -> f64 {
+        self.width
+    }
+}
 
 // For better error messages in case of panics
 #[wasm_bindgen(start)]
@@ -28,6 +40,8 @@ pub fn start() {
 
 #[wasm_bindgen]
 pub struct Game {
+    width: f64,
+    height: f64,
     ast : HtmlImageElement,
     t: i64,
     shapes: Vec<Box<dyn GameObject>>,
@@ -76,6 +90,8 @@ impl Game {
             sprite_off: clone_sprite( &rocket_thrust_off)
         };
         Game {
+            width: 1000.0,
+            height: 600.0,
             ast: asteroid_sprite,
             t: Self::now_ms(),
             shapes: vec![
@@ -89,13 +105,13 @@ impl Game {
             let asteroid = Asteroid {
                 name: "Asteroid".to_string(),
                 position: Vector {
-                    x: 20.0 * i as f64,
-                    y: 15.0 * i as f64
+                    x: 20.0 * random_number(),
+                    y: 15.0 * random_number()
                 },
                 rotation: 0.0,
                 speed: Vector {
-                    x: 5.0 + i as f64,
-                    y: 5.0 - i as f64
+                    x: 5.0 + random_number(),
+                    y: 5.0 - random_number()
                 },
                 acc : Vector {
                     x: 0.0,
