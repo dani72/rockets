@@ -28,6 +28,7 @@ pub fn start() {
 
 #[wasm_bindgen]
 pub struct Game {
+    ast : HtmlImageElement,
     t: i64,
     shapes: Vec<Box<dyn GameObject>>,
 }
@@ -74,47 +75,36 @@ impl Game {
             sprite_on: clone_sprite( &rocket_thrust_on),
             sprite_off: clone_sprite( &rocket_thrust_off)
         };
-        let asteroid1 = Asteroid {
-            name: "Asteroid1".to_string(),
-            position: Vector {
-                x: 100.0,
-                y: 100.0
-            },
-            rotation: 0.0,
-            speed: Vector {
-                x: 5.0,
-                y: 5.0
-            },
-            acc : Vector {
-                x: 0.0,
-                y: 0.0
-            },
-            image: clone_sprite( &asteroid_sprite)
-        };
-        let asteroid2 = Asteroid {
-            name: "Asteroid2".to_string(),
-            position: Vector {
-                x: 200.0,
-                y: 200.0
-            },
-            rotation: 0.0,
-            speed: Vector {
-                x: 10.0,
-                y: 4.0
-            },
-            acc : Vector {
-                x: 0.0,
-                y: 0.0
-            },
-            image: clone_sprite( &asteroid_sprite)
-        };
         Game {
+            ast: asteroid_sprite,
             t: Self::now_ms(),
             shapes: vec![
                 Box::new( rocket1),
-                Box::new( rocket2),
-                Box::new( asteroid1),
-                Box::new( asteroid2)]
+                Box::new( rocket2)]
+        }
+    }
+
+    pub fn add_asteroids( &mut self) {
+        for i in 0..10 {
+            let asteroid = Asteroid {
+                name: "Asteroid".to_string(),
+                position: Vector {
+                    x: 20.0 * i as f64,
+                    y: 15.0 * i as f64
+                },
+                rotation: 0.0,
+                speed: Vector {
+                    x: 5.0 + i as f64,
+                    y: 5.0 - i as f64
+                },
+                acc : Vector {
+                    x: 0.0,
+                    y: 0.0
+                },
+                image: clone_sprite( &self.ast)
+            };
+
+            self.shapes.push( Box::new( asteroid));
         }
     }
 
