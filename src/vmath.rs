@@ -43,4 +43,8 @@ impl Vector {
     pub fn sub(&self, other: &Self) -> Self {
         Self::new(self.x - other.x, self.y - other.y)
     }        
+
+    pub fn distance(&self, other: &Self) -> f64 {
+        ((self.x - other.x).powi(2) + (self.y - other.y).powi(2)).sqrt()
+    }
 }

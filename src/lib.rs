@@ -14,6 +14,7 @@ use game::GameObject;
 use game::GameArea;
 use game::Area;
 use myrand::random_number;
+use std::ptr;
 
 pub fn clone_sprite( image: &HtmlImageElement) -> HtmlImageElement{
     let document = window().unwrap().document().unwrap();
@@ -134,7 +135,7 @@ impl Game {
         Date::now() as i64
     }
 
-    pub fn update(&mut self) {
+    fn update(&mut self) {
         let delta_t = Self::now_ms() - self.t;
 
         for shape in self.shapes.iter_mut() {
@@ -144,8 +145,22 @@ impl Game {
         self.t = Self::now_ms();
     }
 
+    fn check_collisions(&mut self) {
+        for shape in self.shapes.iter() {
+            for other_shape in self.shapes.iter() {
+                if !ptr::eq(shape, other_shape) {
+                    if shape.current_position().distance( &other_shape.current_position()) < 20.0 {
+                        web_sys::console::log_1(&JsValue::from_str("Collision"));
+                        break;
+                    }
+                }
+            }
+        }   
+    }
+
     pub fn render(&mut self) -> Result<(), JsValue> {
         self.update();
+        self.check_collisions();
         
         self.ctx.clear_rect(0.0, 0.0, self.game_area.width, self.game_area.height);
         

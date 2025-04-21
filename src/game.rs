@@ -5,7 +5,7 @@ pub trait GameObject {
     fn move_t(&mut self, delta_t: f64, game_area: Area);
     fn render(&mut self, ctx: &CanvasRenderingContext2d);
 
-    fn current_position( &mut self) -> Vector;
+    fn current_position( &self) -> Vector;
 
     fn thrust_inc( &mut self);
     fn thrust_dec( &mut self);

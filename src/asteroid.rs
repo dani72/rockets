@@ -20,7 +20,7 @@ impl Asteroid {
 
 impl GameObject for Asteroid {
 
-    fn current_position(&mut self) -> Vector {
+    fn current_position(&self) -> Vector {
         self.position
     }
 

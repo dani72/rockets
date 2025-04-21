@@ -27,7 +27,7 @@ impl Rocket {
 }
 
 impl GameObject for Rocket {
-    fn current_position(&mut self) -> Vector {
+    fn current_position(&self) -> Vector {
         self.position
     }
 
