@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Rust WASM Game</title>
+</head>
+<body>
+    <canvas id="game-canvas" width="1000" height="600" style="border:1px solid black;"></canvas>
+    <script type="module">
+        import init, { Game } from "./pkg/canvas_rust_game.js";
+
+        async function loadImage(src) {
+            return new Promise((resolve, reject) => {
+                const img = new Image();
+                img.onload = () => resolve(img);
+                img.onerror = reject;
+                img.src = src;
+            });
+        }        
+
+        async function start() {
+            try {
+                await init();
+                const game = new Game();
+
+                const rocketThrustOn = await loadImage("./assets/rocket_thrust_on.png");
+                const rocketThrustOff = await loadImage("./assets/rocket_thrust_off.png");
+
+                game.set_rocket_thrust_on( rocketThrustOn);
+                game.set_rocket_thrust_off( rocketThrustOff);
+
+                function animationLoop() {
+                    try {
+                        game.render();
+                        requestAnimationFrame(animationLoop);
+                    } catch (error) {
+                        console.error("Error in animation loop:", error);
+                    }
+                }
+
+                document.addEventListener('keydown', (event) => {
+                    // Update the Rust game state
+                    if (event.key === 'ArrowUp') game.up_pressed();
+                    if (event.key === 'ArrowDown') game.down_pressed();
+                    if (event.key === 'ArrowLeft') game.left_pressed();
+                    if (event.key === 'ArrowRight') game.right_pressed();
+                    if( event.key === 'a') game.a_pressed();
+                    if( event.key === 'd') game.d_pressed();
+                    if( event.key === 'w') game.w_pressed();
+                    if( event.key === 'x') game.x_pressed();
+                });
+
+                // Start the animation loop
+                animationLoop();
+            } catch (error) {
+                console.error("Failed to initialize:", error);
+            }
+        }
+
+        start();
+    </script>
+</body>
+</html>
