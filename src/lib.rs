@@ -51,7 +51,8 @@ impl Game {
                 game_height: f64,
                 asteroid_sprite: HtmlImageElement, 
                 rocket_thrust_on: HtmlImageElement, 
-                rocket_thrust_off: HtmlImageElement, 
+                rocket_thrust_off: HtmlImageElement,
+                explosion: HtmlImageElement,
                 rendering_context: CanvasRenderingContext2d ) -> Game {
         let rocket1 = Rocket {
             name: "Rocket1".to_string(),
