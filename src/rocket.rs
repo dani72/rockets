@@ -27,6 +27,10 @@ impl Rocket {
 }
 
 impl GameObject for Rocket {
+    fn current_position(&mut self) -> Vector {
+        self.position
+    }
+
     fn move_t(&mut self, delta_t: f64, game_area: Area) {
         self.speed = self.speed.add( &self.acc.scale(delta_t));
         self.position = self.position.add( &self.speed.scale(delta_t));
