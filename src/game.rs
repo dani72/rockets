@@ -1,11 +1,20 @@
 use web_sys::CanvasRenderingContext2d;
 use crate::vmath::Vector;
 
+pub enum GameObjectType {
+    Asteroid,
+    Rocket,
+    Explosion
+}
+
 pub trait GameObject {
     fn move_t(&mut self, delta_t: f64, game_area: Area);
     fn render(&mut self, ctx: &CanvasRenderingContext2d);
 
+    fn get_type( &self) -> GameObjectType;
     fn current_position( &self) -> Vector;
+    fn is_expired( &self) -> bool;
+    fn can_collide( &self) -> bool;
 
     fn thrust_inc( &mut self);
     fn thrust_dec( &mut self);

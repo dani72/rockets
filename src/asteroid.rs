@@ -1,4 +1,5 @@
 use web_sys::{ CanvasRenderingContext2d, HtmlImageElement, console};
+use crate::game::GameObjectType;
 use crate::vmath::Vector;
 use crate::game::GameObject;
 use crate::game::Area;
@@ -20,8 +21,20 @@ impl Asteroid {
 
 impl GameObject for Asteroid {
 
+    fn get_type( &self) -> GameObjectType {
+        return GameObjectType::Asteroid;
+    }
+    
     fn current_position(&self) -> Vector {
         self.position
+    }
+
+    fn is_expired( &self) -> bool {
+        return false;
+    }
+
+    fn can_collide( &self) -> bool {
+        return true;
     }
 
     fn move_t(&mut self, delta_t: f64, game_area: Area) {

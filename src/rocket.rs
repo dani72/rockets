@@ -3,6 +3,7 @@ use crate::vmath::Vector;
 use std::f64::consts::FRAC_PI_2;
 use crate::game::GameObject;
 use crate::game::Area;
+use crate::game::GameObjectType;
 use crate::vmath::GRAVITY;
 
 pub struct Rocket {
@@ -22,14 +23,27 @@ impl Rocket {
     }
 
     fn update_acc( &mut self) {
-        self.acc = Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale(self.thrust).add( &GRAVITY);
+        self.acc = Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale(self.thrust); //.add( &GRAVITY);
     }
 }
 
 impl GameObject for Rocket {
+
+    fn get_type( &self) -> GameObjectType {
+        return GameObjectType::Rocket;
+    }
+
     fn current_position(&self) -> Vector {
         self.position
     }
+
+    fn is_expired( &self) -> bool {
+        return false;
+    }
+
+    fn can_collide( &self) -> bool {
+        return true;
+    }   
 
     fn move_t(&mut self, delta_t: f64, game_area: Area) {
         self.speed = self.speed.add( &self.acc.scale(delta_t));

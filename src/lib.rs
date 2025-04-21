@@ -3,13 +3,16 @@ mod rocket;
 mod asteroid;
 mod game;
 mod myrand;
+mod explosion;
 
+use game::GameObjectType;
 use wasm_bindgen::prelude::*;
 use web_sys::{window, CanvasRenderingContext2d, HtmlImageElement};
 use js_sys::Date;
 use vmath::Vector;
 use rocket::Rocket;
 use asteroid::Asteroid;
+use explosion::Explosion;
 use game::GameObject;
 use game::GameArea;
 use game::Area;
@@ -40,6 +43,7 @@ pub fn start() {
 pub struct Game {
     game_area: Area,
     ast : HtmlImageElement,
+    exp : HtmlImageElement,
     ctx: CanvasRenderingContext2d,
     t: i64,
     shapes: Vec<Box<dyn GameObject>>,
@@ -53,7 +57,7 @@ impl Game {
                 asteroid_sprite: HtmlImageElement, 
                 rocket_thrust_on: HtmlImageElement, 
                 rocket_thrust_off: HtmlImageElement,
-                explosion: HtmlImageElement,
+                explosion_sprite: HtmlImageElement,
                 rendering_context: CanvasRenderingContext2d ) -> Game {
         let rocket1 = Rocket {
             name: "Rocket1".to_string(),
@@ -93,6 +97,14 @@ impl Game {
             sprite_on: clone_sprite( &rocket_thrust_on),
             sprite_off: clone_sprite( &rocket_thrust_off)
         };
+        let exp1 = Explosion {
+            time: 0.0,
+            position: Vector {
+                x: 300.0,
+                y: 300.0
+            },
+            image: clone_sprite( &explosion_sprite),
+        };
         Game {
             game_area: Area {  // Game area
                 width: game_width,
@@ -100,10 +112,12 @@ impl Game {
             },
             ctx: rendering_context,
             ast: asteroid_sprite,
+            exp: explosion_sprite,
             t: Self::now_ms(),
             shapes: vec![
                 Box::new( rocket1),
-                Box::new( rocket2)]
+                Box::new( rocket2),
+                Box::new( exp1)]
         }
     }
 
@@ -146,22 +160,42 @@ impl Game {
     }
 
     fn check_collisions(&mut self) {
+        let mut expl: Option<Explosion> = None;
+
         for shape in self.shapes.iter() {
-            for other_shape in self.shapes.iter() {
-                if !ptr::eq(shape, other_shape) {
-                    if shape.current_position().distance( &other_shape.current_position()) < 20.0 {
-                        web_sys::console::log_1(&JsValue::from_str("Collision"));
-                        break;
+            if let GameObjectType::Rocket = shape.get_type() {
+                for other_shape in self.shapes.iter() {
+                    if !ptr::eq(shape, other_shape) {
+                        if !shape.can_collide() || !other_shape.can_collide() {
+                            continue;
+                        }
+
+                        if shape.current_position().distance( &other_shape.current_position()) < 30.0 {
+                            web_sys::console::log_1(&JsValue::from_str("Collision"));
+
+                            expl = Some( Explosion {
+                                time: 0.0,
+                                position: shape.current_position(),
+                                image: clone_sprite( &self.exp)
+                            });
+                            break;
+                        }
                     }
                 }
             }
-        }   
+        }
+
+        if let Some( explosion) = expl {
+            self.shapes.push( Box::new( explosion));
+        }
     }
 
     pub fn render(&mut self) -> Result<(), JsValue> {
         self.update();
         self.check_collisions();
         
+        self.shapes.retain( |x| !x.is_expired());
+
         self.ctx.clear_rect(0.0, 0.0, self.game_area.width, self.game_area.height);
         
         for shape in self.shapes.iter_mut() {
