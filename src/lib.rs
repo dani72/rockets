@@ -1,5 +1,6 @@
 mod vmath;
 mod rocket;
+mod asteroid;
 mod game;
 
 use wasm_bindgen::prelude::*;
@@ -7,7 +8,17 @@ use web_sys::{window, HtmlCanvasElement, CanvasRenderingContext2d, HtmlImageElem
 use js_sys::Date;
 use vmath::Vector;
 use rocket::Rocket;
+use asteroid::Asteroid;
 use game::GameObject;
+
+pub fn clone_sprite( image: &HtmlImageElement) -> HtmlImageElement{
+    let document = window().unwrap().document().unwrap();
+    let img1 = document.create_element("img").unwrap().dyn_into::<HtmlImageElement>().unwrap();
+    img1.set_src( &image.src());
+
+    return img1;
+}
+
 
 // For better error messages in case of panics
 #[wasm_bindgen(start)]
@@ -24,7 +35,7 @@ pub struct Game {
 #[wasm_bindgen]
 impl Game {
     #[wasm_bindgen(constructor)]
-    pub fn new() -> Game {
+    pub fn new( asteroid_sprite: HtmlImageElement, rocket_thrust_on: HtmlImageElement, rocket_thrust_off: HtmlImageElement ) -> Game {
         let rocket1 = Rocket {
             name: "Rocket1".to_string(),
             position: Vector {
@@ -41,8 +52,8 @@ impl Game {
                 y: 0.0
             },
             thrust: 0.0,
-            sprite_on: None,
-            sprite_off: None
+            sprite_on: clone_sprite( &rocket_thrust_on),
+            sprite_off: clone_sprite( &rocket_thrust_off)
         };
         let rocket2 = Rocket {
             name: "Rocket2".to_string(),
@@ -60,43 +71,52 @@ impl Game {
                 y: 0.0
             },
             thrust: 0.0,
-            sprite_on: None,
-            sprite_off: None
+            sprite_on: clone_sprite( &rocket_thrust_on),
+            sprite_off: clone_sprite( &rocket_thrust_off)
+        };
+        let asteroid1 = Asteroid {
+            name: "Asteroid1".to_string(),
+            position: Vector {
+                x: 100.0,
+                y: 100.0
+            },
+            rotation: 0.0,
+            speed: Vector {
+                x: 5.0,
+                y: 5.0
+            },
+            acc : Vector {
+                x: 0.0,
+                y: 0.0
+            },
+            image: clone_sprite( &asteroid_sprite)
+        };
+        let asteroid2 = Asteroid {
+            name: "Asteroid2".to_string(),
+            position: Vector {
+                x: 200.0,
+                y: 200.0
+            },
+            rotation: 0.0,
+            speed: Vector {
+                x: 10.0,
+                y: 4.0
+            },
+            acc : Vector {
+                x: 0.0,
+                y: 0.0
+            },
+            image: clone_sprite( &asteroid_sprite)
         };
         Game {
             t: Self::now_ms(),
             shapes: vec![
                 Box::new( rocket1),
-                Box::new( rocket2)]
+                Box::new( rocket2),
+                Box::new( asteroid1),
+                Box::new( asteroid2)]
         }
     }
-
-    pub fn set_rocket_thrust_on(&mut self, image: HtmlImageElement) {
-        let document = window().unwrap().document().unwrap();
-
-        let img1 = document.create_element("img").unwrap().dyn_into::<HtmlImageElement>().unwrap();
-        let img2 = document.create_element("img").unwrap().dyn_into::<HtmlImageElement>().unwrap();
-
-        img1.set_src( &image.src());
-        img2.set_src( &image.src());
-
-        self.shapes[0].set_sprite_on( img1);
-        self.shapes[1].set_sprite_on( img2);
-    }
-
-    pub fn set_rocket_thrust_off(&mut self, image: HtmlImageElement) {
-        let document = window().unwrap().document().unwrap();
-
-        let img1 = document.create_element("img").unwrap().dyn_into::<HtmlImageElement>().unwrap();
-        let img2 = document.create_element("img").unwrap().dyn_into::<HtmlImageElement>().unwrap();
-
-        img1.set_src( &image.src());
-        img2.set_src( &image.src());
-
-        self.shapes[0].set_sprite_off (img1);
-        self.shapes[1].set_sprite_off (img2);
-    }
-
 
     pub fn now_ms() -> i64 {
         Date::now() as i64

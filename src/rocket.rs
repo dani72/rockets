@@ -11,8 +11,8 @@ pub struct Rocket {
     pub speed: Vector,
     pub acc: Vector,
     pub thrust: f64,
-    pub sprite_on: Option<HtmlImageElement>,
-    pub sprite_off: Option<HtmlImageElement>
+    pub sprite_on: HtmlImageElement,
+    pub sprite_off: HtmlImageElement
  }
 
 impl Rocket {
@@ -32,38 +32,19 @@ impl GameObject for Rocket {
     }
 
     fn render(&mut self, ctx: &CanvasRenderingContext2d) {
+        let sprite = if self.thrust > 0.0 { &self.sprite_on } else { &self.sprite_off };
 
-        if self.thrust > 0.0 {
-            if let Some(sprite) = &self.sprite_on {
-                ctx.save();
-                ctx.translate(self.position.x, self.position.y).unwrap();          // Move to sprite position
-                ctx.rotate( self.rotation).unwrap();        // Rotate around that point
-                ctx.draw_image_with_html_image_element_and_dw_and_dh(
-                    sprite,
-                    - (sprite.width() as f64 / 2.0),
-                    - (sprite.height() as f64 / 2.0),
-                    sprite.width() as f64,
-                    sprite.height() as f64,
-                ).unwrap();
-                ctx.restore();
-            }
-        }
-        else {
-            if let Some(sprite) = &self.sprite_off {
-                ctx.save();
-                ctx.translate(self.position.x, self.position.y).unwrap();          // Move to sprite position
-                ctx.rotate( self.rotation).unwrap();        // Rotate around that point
-                ctx.draw_image_with_html_image_element_and_dw_and_dh(
-                    sprite,
-                    - (sprite.width() as f64 / 2.0),
-                    - (sprite.height() as f64 / 2.0),
-                    sprite.width() as f64,
-                    sprite.height() as f64,
-                ).unwrap();
-                ctx.restore();
-            }
-
-        }
+        ctx.save();
+        ctx.translate(self.position.x, self.position.y).unwrap();          // Move to sprite position
+        ctx.rotate( self.rotation).unwrap();        // Rotate around that point
+        ctx.draw_image_with_html_image_element_and_dw_and_dh(
+            &sprite,
+            - (sprite.width() as f64 / 2.0),
+            - (sprite.height() as f64 / 2.0),
+            sprite.width() as f64,
+            sprite.height() as f64,
+        ).unwrap();
+        ctx.restore();
     }
 
     fn thrust_dec( &mut self) {
@@ -97,13 +78,4 @@ impl GameObject for Rocket {
         self.update_acc();
         self.status();
     }
-
-    fn set_sprite_on( &mut self, sprite: HtmlImageElement) {
-        self.sprite_on = Some(sprite);
-    }
-
-    fn set_sprite_off( &mut self, sprite: HtmlImageElement) {
-        self.sprite_off = Some(sprite);
-    }   
-
 }

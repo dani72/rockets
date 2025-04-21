@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Rust WASM Game</title>
+    <title>Rockets!</title>
 </head>
 <body>
     <canvas id="game-canvas" width="1000" height="600" style="border:1px solid black;"></canvas>
@@ -21,13 +21,12 @@
         async function start() {
             try {
                 await init();
-                const game = new Game();
 
                 const rocketThrustOn = await loadImage("./assets/rocket_thrust_on.png");
                 const rocketThrustOff = await loadImage("./assets/rocket_thrust_off.png");
+                const asteroid = await loadImage("./assets/asteroid.png");
 
-                game.set_rocket_thrust_on( rocketThrustOn);
-                game.set_rocket_thrust_off( rocketThrustOff);
+                const game = new Game( asteroid, rocketThrustOn, rocketThrustOff);
 
                 function animationLoop() {
                     try {
