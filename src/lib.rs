@@ -1,3 +1,5 @@
+mod vmath;
+
 use js_sys::Reflect::set_f64;
 use wasm_bindgen::prelude::*;
 use web_sys::{window, Document, HtmlCanvasElement, CanvasRenderingContext2d, KeyboardEvent, HtmlImageElement};
@@ -5,6 +7,8 @@ use js_sys::Date;
 use web_sys::console;
 use std::cell::RefCell;
 use std::rc::Rc;
+use vmath::Vector;
+use std::f64::consts::FRAC_PI_2;
 
 // For better error messages in case of panics
 #[wasm_bindgen(start)]
@@ -30,15 +34,11 @@ trait GameObject {
     fn thrust_left( &mut self);
 }
 
-struct Vector {
-    x: f64,
-    y: f64
-}
+
 
 struct Rocket {
     name: String,
-    x: f64,
-    y: f64,
+    position: Vector,
     rotation: f64,
     speed: Vector,
     acc: Vector,
@@ -49,24 +49,20 @@ struct Rocket {
 
 impl Rocket {
     fn status( &mut self) {
-        console::log_1( &format!("{}: x = {}, y = {} (Speed {}, {}) (Acc {} {}) (Thrust {})", self.name, self.x, self.y, self.speed.x, self.speed.y, self.acc.x, self.acc.y, self.thrust).into());
+        console::log_1( &format!("{}: x = {}, y = {} (Speed {}, {}) (Acc {} {}) (Thrust {})", self.name, self.position.x, self.position.y, self.speed.x, self.speed.y, self.acc.x, self.acc.y, self.thrust).into());
     }
 
     fn update_acc( &mut self) {
-        self.acc.x = (self.rotation - std::f32::consts::FRAC_PI_2 as f64).cos() * self.thrust;
-        self.acc.y = (self.rotation - std::f32::consts::FRAC_PI_2 as f64).sin() * self.thrust;
+        self.acc = Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale(self.thrust);
     }
 }
 
 impl GameObject for Rocket {
     fn move_t(&mut self, delta_t: f64) {
 
-        self.speed.x = self.speed.x + (self.acc.x * delta_t);
-        self.speed.y = self.speed.y + ((self.acc.y + 9.81) * delta_t);
-
-        self.x += self.speed.x * delta_t;
-        self.y += self.speed.y * delta_t;
-
+        self.speed = self.speed.add( &self.acc.scale(delta_t));
+        let gravity = Vector::new(0.0, 9.81);
+        self.position = self.position.add( &self.acc.add( &gravity).scale(delta_t));
     }
 
     fn render(&mut self, ctx: &CanvasRenderingContext2d) {
@@ -74,7 +70,7 @@ impl GameObject for Rocket {
         if self.thrust > 0.0 {
             if let Some(sprite) = &self.sprite_on {
                 ctx.save();
-                ctx.translate(self.x, self.y).unwrap();          // Move to sprite position
+                ctx.translate(self.position.x, self.position.y).unwrap();          // Move to sprite position
                 ctx.rotate( self.rotation).unwrap();        // Rotate around that point
                 ctx.draw_image_with_html_image_element_and_dw_and_dh(
                     sprite,
@@ -89,7 +85,7 @@ impl GameObject for Rocket {
         else {
             if let Some(sprite) = &self.sprite_off {
                 ctx.save();
-                ctx.translate(self.x, self.y).unwrap();          // Move to sprite position
+                ctx.translate(self.position.x, self.position.y).unwrap();          // Move to sprite position
                 ctx.rotate( self.rotation).unwrap();        // Rotate around that point
                 ctx.draw_image_with_html_image_element_and_dw_and_dh(
                     sprite,
@@ -144,8 +140,10 @@ impl Game {
     pub fn new() -> Game {
         let circle = Rocket {
             name: "Rocket1".to_string(),
-            x: 480.0,
-            y: 100.0,
+            position: Vector {
+                x: 480.0,
+                y: 100.0
+            },
             rotation: 0.0,
             speed: Vector {
                 x: 0.0,
@@ -161,8 +159,10 @@ impl Game {
         };
         let circle2 = Rocket {
             name: "Rocket2".to_string(),
-            x: 300.0,
-            y: 50.0,
+            position: Vector {
+                x: 300.0,
+                y: 50.0,
+            },
             rotation: 0.0,
             speed: Vector {
                 x: 0.0,
@@ -181,14 +181,10 @@ impl Game {
             x: 200.0,
             y: 200.0,
             shapes: vec![circle, circle2],
-            sprite_on: None,
-            sprite_off: None
         }
     }
 
     pub fn set_rocket_thrust_on(&mut self, image: HtmlImageElement) {
-//        self.shapes[0].sprite_on = Some(image);
-
         let document = window().unwrap().document().unwrap();
 
         let img1 = document.create_element("img").unwrap().dyn_into::<HtmlImageElement>().unwrap();
@@ -202,8 +198,6 @@ impl Game {
     }
 
     pub fn set_rocket_thrust_off(&mut self, image: HtmlImageElement) {
-//        self.shapes[0].sprite_off = Some(image);
-
         let document = window().unwrap().document().unwrap();
 
         let img1 = document.create_element("img").unwrap().dyn_into::<HtmlImageElement>().unwrap();
