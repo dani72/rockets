@@ -4,7 +4,8 @@ use crate::vmath::Vector;
 pub enum GameObjectType {
     Asteroid,
     Rocket,
-    Explosion
+    Explosion,
+    Bullet
 }
 
 pub trait GameObject {
@@ -16,10 +17,15 @@ pub trait GameObject {
     fn is_expired( &self) -> bool;
     fn can_collide( &self) -> bool;
 
+    fn expire( &mut self);
+}
+
+pub trait ActiveObject : GameObject {
     fn thrust_inc( &mut self);
     fn thrust_dec( &mut self);
     fn rotate_right( &mut self);
     fn rotate_left( &mut self);
+    fn fire( &mut self) -> Box<dyn GameObject>;    
 }
 
 #[derive(Clone)]

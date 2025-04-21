@@ -28,6 +28,10 @@ impl GameObject for Explosion {
         return false;
     }
 
+    fn expire( &mut self) {
+
+    }
+
     fn move_t(&mut self, delta_t: f64, game_area: Area) {
         self.time += delta_t;
     }
@@ -35,7 +39,6 @@ impl GameObject for Explosion {
     fn render(&mut self, ctx: &CanvasRenderingContext2d) {
         ctx.save();
         ctx.translate(self.position.x, self.position.y).unwrap();          // Move to sprite position
-//            ctx.rotate( self.rotation).unwrap();        // Rotate around that point
         ctx.scale( self.time / 1.0, self.time / 1.0);
         ctx.draw_image_with_html_image_element_and_dw_and_dh(
             &self.image,
@@ -45,17 +48,5 @@ impl GameObject for Explosion {
             self.image.height() as f64,
         ).unwrap();
         ctx.restore();
-    }
-
-    fn thrust_dec( &mut self) {
-    }
-
-    fn thrust_inc( &mut self) {
-    }
-
-    fn rotate_right( &mut self) {
-    }
-
-    fn rotate_left( &mut self) {
     }
 }

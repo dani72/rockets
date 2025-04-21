@@ -1,9 +1,11 @@
 use web_sys::{ CanvasRenderingContext2d, HtmlImageElement, console};
 use crate::vmath::Vector;
 use std::f64::consts::FRAC_PI_2;
+use crate::game::ActiveObject;
 use crate::game::GameObject;
 use crate::game::Area;
 use crate::game::GameObjectType;
+use crate::bullet::Bullet;
 use crate::vmath::GRAVITY;
 
 pub struct Rocket {
@@ -27,6 +29,51 @@ impl Rocket {
     }
 }
 
+impl ActiveObject for Rocket {
+
+    fn thrust_dec( &mut self) {
+        if self.thrust > 0.0 {
+            self.thrust -= 1.0;
+        }
+
+        self.update_acc();
+        self.status();
+    }
+
+    fn thrust_inc( &mut self) {
+        if self.thrust < 20.0 {
+            self.thrust += 1.0;
+        }
+
+        self.update_acc();
+        self.status();
+    }
+
+    fn rotate_right( &mut self) {
+        self.rotation += 0.1;
+
+        self.update_acc();
+        self.status();
+    }
+
+    fn rotate_left( &mut self) {
+        self.rotation -= 0.1;
+
+        self.update_acc();
+        self.status();
+    }
+
+    fn fire( &mut self) -> Box<dyn GameObject> {
+        let bullet = Bullet {
+            start_position: self.position.clone(),
+            position: self.position.clone(),
+            speed: Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale( 250.0).add( &self.speed)
+        };
+
+        Box::new( bullet)
+    }   
+}
+
 impl GameObject for Rocket {
 
     fn get_type( &self) -> GameObjectType {
@@ -35,6 +82,10 @@ impl GameObject for Rocket {
 
     fn current_position(&self) -> Vector {
         self.position
+    }
+
+    fn expire( &mut self) {
+
     }
 
     fn is_expired( &self) -> bool {
@@ -80,37 +131,5 @@ impl GameObject for Rocket {
             sprite.height() as f64,
         ).unwrap();
         ctx.restore();
-    }
-
-    fn thrust_dec( &mut self) {
-        if self.thrust > 0.0 {
-            self.thrust -= 1.0;
-        }
-
-        self.update_acc();
-        self.status();
-    }
-
-    fn thrust_inc( &mut self) {
-        if self.thrust < 20.0 {
-            self.thrust += 1.0;
-        }
-
-        self.update_acc();
-        self.status();
-    }
-
-    fn rotate_right( &mut self) {
-        self.rotation += 0.1;
-
-        self.update_acc();
-        self.status();
-    }
-
-    fn rotate_left( &mut self) {
-        self.rotation -= 0.1;
-
-        self.update_acc();
-        self.status();
     }
 }

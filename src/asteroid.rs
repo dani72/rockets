@@ -6,6 +6,7 @@ use crate::game::Area;
 
 pub struct Asteroid {
     pub name: String,
+    pub expired: bool,
     pub position: Vector,
     pub rotation: f64,
     pub speed: Vector,
@@ -24,13 +25,17 @@ impl GameObject for Asteroid {
     fn get_type( &self) -> GameObjectType {
         return GameObjectType::Asteroid;
     }
-    
+
     fn current_position(&self) -> Vector {
         self.position
     }
 
+    fn expire( &mut self) {
+        self.expired = true;
+    }
+
     fn is_expired( &self) -> bool {
-        return false;
+        return self.expired;
     }
 
     fn can_collide( &self) -> bool {
@@ -70,17 +75,5 @@ impl GameObject for Asteroid {
             self.image.height() as f64,
         ).unwrap();
         ctx.restore();
-    }
-
-    fn thrust_dec( &mut self) {
-    }
-
-    fn thrust_inc( &mut self) {
-    }
-
-    fn rotate_right( &mut self) {
-    }
-
-    fn rotate_left( &mut self) {
     }
 }

@@ -16,6 +16,7 @@ use asteroid::Asteroid;
 use explosion::Explosion;
 use bullet::Bullet;
 use game::GameObject;
+use game::ActiveObject;
 use game::GameArea;
 use game::Area;
 use myrand::random_number;
@@ -43,6 +44,8 @@ pub fn start() {
 
 #[wasm_bindgen]
 pub struct Game {
+    rocket1: Rocket,
+    rocket2: Rocket,
     game_area: Area,
     ast : HtmlImageElement,
     exp : HtmlImageElement,
@@ -61,7 +64,7 @@ impl Game {
                 rocket_thrust_off: HtmlImageElement,
                 explosion_sprite: HtmlImageElement,
                 rendering_context: CanvasRenderingContext2d ) -> Game {
-        let rocket1 = Rocket {
+        let lrocket1 = Rocket {
             name: "Rocket1".to_string(),
             position: Vector {
                 x: 480.0,
@@ -80,7 +83,7 @@ impl Game {
             sprite_on: clone_sprite( &rocket_thrust_on),
             sprite_off: clone_sprite( &rocket_thrust_off)
         };
-        let rocket2 = Rocket {
+        let lrocket2 = Rocket {
             name: "Rocket2".to_string(),
             position: Vector {
                 x: 300.0,
@@ -114,6 +117,8 @@ impl Game {
             }
         };
         Game {
+            rocket1: lrocket1,
+            rocket2: lrocket2,
             game_area: Area {  // Game area
                 width: game_width,
                 height: game_height,
@@ -123,8 +128,6 @@ impl Game {
             exp: explosion_sprite,
             t: Self::now_ms(),
             shapes: vec![
-                Box::new( rocket1),
-                Box::new( rocket2),
                 Box::new( bullet)]
         }
     }
@@ -133,6 +136,7 @@ impl Game {
         for i in 0..10 {
             let asteroid = Asteroid {
                 name: "Asteroid".to_string(),
+                expired: false,
                 position: Vector {
                     x: 20.0 * random_number(),
                     y: 15.0 * random_number()
@@ -158,10 +162,13 @@ impl Game {
     }
 
     fn update(&mut self) {
-        let delta_t = Self::now_ms() - self.t;
+        let delta_t = (Self::now_ms() - self.t) as f64 / 1000.0;
+
+        &self.rocket1.move_t( delta_t, self.game_area.clone());
+        &self.rocket2.move_t( delta_t, self.game_area.clone());
 
         for shape in self.shapes.iter_mut() {
-            shape.move_t( delta_t as f64 / 1000.0, self.game_area.clone());
+            shape.move_t( delta_t, self.game_area.clone());
         }
 
         self.t = Self::now_ms();
@@ -170,25 +177,26 @@ impl Game {
     fn check_collisions(&mut self) {
         let mut expl: Option<Explosion> = None;
 
-        for shape in self.shapes.iter() {
-            if let GameObjectType::Rocket = shape.get_type() {
-                for other_shape in self.shapes.iter() {
-                    if !ptr::eq(shape, other_shape) {
-                        if !shape.can_collide() || !other_shape.can_collide() {
-                            continue;
-                        }
+        for shape in self.shapes.iter_mut() {
+            if self.rocket1.current_position().distance( &shape.current_position()) < 30.0 {
+                if matches!( shape.get_type(), GameObjectType::Asteroid) {
+                    shape.expire();
+                    expl = Some( Explosion {
+                        time: 0.0,
+                        position: shape.current_position(),
+                        image: clone_sprite( &self.exp)
+                    });
+                }
+            }
 
-                        if shape.current_position().distance( &other_shape.current_position()) < 30.0 {
-                            web_sys::console::log_1(&JsValue::from_str("Collision"));
-
-                            expl = Some( Explosion {
-                                time: 0.0,
-                                position: shape.current_position(),
-                                image: clone_sprite( &self.exp)
-                            });
-                            break;
-                        }
-                    }
+            if self.rocket2.current_position().distance( &shape.current_position()) < 30.0 {
+                if matches!( shape.get_type(), GameObjectType::Asteroid) {
+                    shape.expire();
+                    expl = Some( Explosion {
+                        time: 0.0,
+                        position: shape.current_position(),
+                        image: clone_sprite( &self.exp)
+                    });
                 }
             }
         }
@@ -206,6 +214,9 @@ impl Game {
 
         self.ctx.clear_rect(0.0, 0.0, self.game_area.width, self.game_area.height);
         
+        self.rocket1.render( &self.ctx);
+        self.rocket2.render( &self.ctx);
+
         for shape in self.shapes.iter_mut() {
             shape.render( &self.ctx);
         }
@@ -215,41 +226,54 @@ impl Game {
 
     pub fn up_pressed(&mut self) {
         web_sys::console::log_1(&JsValue::from_str("up pressed"));
-        self.shapes[0].thrust_inc();
+        self.rocket1.thrust_inc();
     }
 
     pub fn down_pressed(&mut self) {
         web_sys::console::log_1(&JsValue::from_str("down pressed"));
-        self.shapes[0].thrust_dec();
+        self.rocket1.thrust_dec();
     }
 
     pub fn left_pressed(&mut self) {
         web_sys::console::log_1(&JsValue::from_str("left pressed"));
-        self.shapes[0].rotate_left();
+        self.rocket1.rotate_left();
     }
 
     pub fn right_pressed(&mut self) {
         web_sys::console::log_1(&JsValue::from_str("right pressed"));
-        self.shapes[0].rotate_right();
+        self.rocket1.rotate_right();
+    }
+
+    pub fn space_pressed(&mut self) {
+        web_sys::console::log_1(&JsValue::from_str("space pressed"));
+        let bullet = self.rocket1.fire();
+
+        self.shapes.push( bullet)
     }
 
     pub fn a_pressed(&mut self) {
-        web_sys::console::log_1(&JsValue::from_str("left pressed"));
-        self.shapes[1].rotate_left();
+        web_sys::console::log_1(&JsValue::from_str("a pressed"));
+        self.rocket2.rotate_left();
     }
 
     pub fn d_pressed(&mut self) {
-        web_sys::console::log_1(&JsValue::from_str("right pressed"));
-        self.shapes[1].rotate_right();
+        web_sys::console::log_1(&JsValue::from_str("d pressed"));
+        self.rocket2.rotate_right();
     }
 
     pub fn w_pressed(&mut self) {
-        web_sys::console::log_1(&JsValue::from_str("up pressed"));
-        self.shapes[1].thrust_inc();
+        web_sys::console::log_1(&JsValue::from_str("w pressed"));
+        self.rocket2.thrust_inc();
     }
 
     pub fn x_pressed(&mut self) {
-        web_sys::console::log_1(&JsValue::from_str("down pressed"));
-        self.shapes[1].thrust_dec();
+        web_sys::console::log_1(&JsValue::from_str("x pressed"));
+        self.rocket2.thrust_dec();
+    }
+
+    pub fn s_pressed( &mut self) {
+        web_sys::console::log_1(&JsValue::from_str("s pressed"));
+        let bullet = self.rocket2.fire();   
+        self.shapes.push( bullet);
     }
 }

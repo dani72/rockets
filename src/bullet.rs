@@ -21,6 +21,10 @@ impl GameObject for Bullet {
         return self.position;
     }
 
+    fn expire( &mut self) {
+
+    }
+
     fn is_expired( &self) -> bool {
         return self.position.distance( &self.start_position) > 700.0;
     }
@@ -38,17 +42,5 @@ impl GameObject for Bullet {
         ctx.arc( self.position.x, self.position.y, 3.0, 0.0, std::f64::consts::PI * 2.0).unwrap();
         ctx.set_fill_style(&JsValue::from_str("red"));
         ctx.fill();
-    }
-
-    fn thrust_dec( &mut self) {
-    }
-
-    fn thrust_inc( &mut self) {
-    }
-
-    fn rotate_right( &mut self) {
-    }
-
-    fn rotate_left( &mut self) {
     }
 }
