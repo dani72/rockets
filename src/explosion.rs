@@ -35,7 +35,7 @@ impl GameObject for Explosion {
     fn render(&mut self, ctx: &CanvasRenderingContext2d) {
         ctx.save();
         ctx.translate(self.position.x, self.position.y).unwrap();          // Move to sprite position
-        ctx.scale( self.time / 1.0, self.time / 1.0);
+        let _ = ctx.scale( self.time / 1.0, self.time / 1.0);
         ctx.draw_image_with_html_image_element_and_dw_and_dh(
             &self.image,
             - (self.image.width() as f64 / 2.0),
