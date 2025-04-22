@@ -12,10 +12,6 @@ impl Vector {
         Self { x, y }
     }
 
-    pub fn zero() -> Self {
-        Self { x: 0.0, y: 0.0 }
-    }
-
     pub fn length(&self) -> f64 {
         (self.x.powi(2) + self.y.powi(2)).sqrt()
     }
@@ -23,7 +19,7 @@ impl Vector {
     pub fn normalize(&self) -> Self {
         let len = self.length();
         if len == 0.0 {
-            Self::zero()
+            ZERO
         } else {
             Self::new(self.x / len, self.y / len)
         }

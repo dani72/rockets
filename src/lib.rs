@@ -120,13 +120,8 @@ impl Game {
         self.rocket1.move_t( delta_t, self.game_area.clone());
         self.rocket2.move_t( delta_t, self.game_area.clone());
 
-        for bullet in self.bullets.iter_mut() {
-            bullet.move_t( delta_t, self.game_area.clone());
-        }
-
-        for shape in self.shapes.iter_mut() {
-            shape.move_t( delta_t, self.game_area.clone());
-        }
+        self.bullets.iter_mut().for_each(|bullet| bullet.move_t( delta_t, self.game_area.clone()));
+        self.shapes.iter_mut().for_each(|shape| shape.move_t( delta_t, self.game_area.clone()));
 
         self.t = Self::now_ms();
     }
