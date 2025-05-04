@@ -66,7 +66,8 @@ impl Game {
                 acc : ZERO,
                 thrust: 0.0,
                 sprite_on: clone_sprite( &rocket_thrust_on),
-                sprite_off: clone_sprite( &rocket_thrust_off)
+                sprite_off: clone_sprite( &rocket_thrust_off),
+                last_shot: 0
             },
             rocket2: Rocket {
                 name: "Rocket2".to_string(),
@@ -76,7 +77,8 @@ impl Game {
                 acc : ZERO,
                 thrust: 0.0,
                 sprite_on: clone_sprite( &rocket_thrust_on),
-                sprite_off: clone_sprite( &rocket_thrust_off)
+                sprite_off: clone_sprite( &rocket_thrust_off),
+                last_shot: 0
             },
             game_area: Area {  // Game area
                 width: game_width,
@@ -208,56 +210,15 @@ impl Game {
         Ok(())
     }
 
-    pub fn up_pressed(&mut self) {
-        web_sys::console::log_1(&JsValue::from_str("up pressed"));
-        self.rocket1.thrust_inc();
-    }
+    pub fn update_active_object( &mut self, thrust: f64, rotate: f64, fire: bool) {
+        self.rocket1.thrust( thrust);
+        self.rocket1.rotate( rotate);
 
-    pub fn down_pressed(&mut self) {
-        web_sys::console::log_1(&JsValue::from_str("down pressed"));
-        self.rocket1.thrust_dec();
-    }
-
-    pub fn left_pressed(&mut self) {
-        web_sys::console::log_1(&JsValue::from_str("left pressed"));
-        self.rocket1.rotate_left();
-    }
-
-    pub fn right_pressed(&mut self) {
-        web_sys::console::log_1(&JsValue::from_str("right pressed"));
-        self.rocket1.rotate_right();
-    }
-
-    pub fn space_pressed(&mut self) {
-        web_sys::console::log_1(&JsValue::from_str("space pressed"));
-        let bullet = self.rocket1.fire();
-
-        self.bullets.push( bullet)
-    }
-
-    pub fn a_pressed(&mut self) {
-        web_sys::console::log_1(&JsValue::from_str("a pressed"));
-        self.rocket2.rotate_left();
-    }
-
-    pub fn d_pressed(&mut self) {
-        web_sys::console::log_1(&JsValue::from_str("d pressed"));
-        self.rocket2.rotate_right();
-    }
-
-    pub fn w_pressed(&mut self) {
-        web_sys::console::log_1(&JsValue::from_str("w pressed"));
-        self.rocket2.thrust_inc();
-    }
-
-    pub fn x_pressed(&mut self) {
-        web_sys::console::log_1(&JsValue::from_str("x pressed"));
-        self.rocket2.thrust_dec();
-    }
-
-    pub fn s_pressed( &mut self) {
-        web_sys::console::log_1(&JsValue::from_str("s pressed"));
-        let bullet = self.rocket2.fire();   
-        self.shapes.push( bullet);
+        if fire {
+            let now = Self::now_ms();
+            if let Some(bullet) = self.rocket1.fire(now) {
+                self.bullets.push(bullet);
+            }
+        }
     }
 }

@@ -15,12 +15,13 @@ pub struct Rocket {
     pub acc: Vector,
     pub thrust: f64,
     pub sprite_on: HtmlImageElement,
-    pub sprite_off: HtmlImageElement
+    pub sprite_off: HtmlImageElement,
+    pub last_shot: i64,
  }
 
 impl Rocket {
     fn status( &mut self) {
-        console::log_1( &format!("{}: x = {}, y = {} (Speed {}, {}) (Acc {} {}) (Thrust {})", self.name, self.position.x, self.position.y, self.speed.x, self.speed.y, self.acc.x, self.acc.y, self.thrust).into());
+//        console::log_1( &format!("{}: x = {}, y = {} (Speed {}, {}) (Acc {} {}) (Thrust {})", self.name, self.position.x, self.position.y, self.speed.x, self.speed.y, self.acc.x, self.acc.y, self.thrust).into());
     }
 
     fn update_acc( &mut self) {
@@ -30,47 +31,39 @@ impl Rocket {
 
 impl ActiveObject for Rocket {
 
-    fn thrust_dec( &mut self) {
-        if self.thrust > 0.0 {
-            self.thrust -= 1.0;
+    fn thrust( &mut self, value : f64) {
+        if( value >= 0.0 && value <= 1.0) {
+            self.thrust = 20.0 * value;
         }
 
         self.update_acc();
         self.status();
     }
 
-    fn thrust_inc( &mut self) {
-        if self.thrust < 20.0 {
-            self.thrust += 1.0;
+
+    fn rotate( &mut self, value : f64) {
+        self.rotation += value * 0.1;
+
+        self.update_acc();
+        self.status();
+    }
+
+    fn fire( &mut self, time: i64) -> Option<Box<dyn GameObject>> {
+        if self.last_shot == 0 || (time - self.last_shot) > 100 {
+            self.last_shot = time;
+
+            let bullet = Bullet {
+                expired: false,
+                start_position: self.position.clone(),
+                position: self.position.clone(),
+                speed: Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale( 250.0).add( &self.speed)
+            };
+
+            Some(Box::new(bullet))
         }
-
-        self.update_acc();
-        self.status();
-    }
-
-    fn rotate_right( &mut self) {
-        self.rotation += 0.1;
-
-        self.update_acc();
-        self.status();
-    }
-
-    fn rotate_left( &mut self) {
-        self.rotation -= 0.1;
-
-        self.update_acc();
-        self.status();
-    }
-
-    fn fire( &mut self) -> Box<dyn GameObject> {
-        let bullet = Bullet {
-            expired: false,
-            start_position: self.position.clone(),
-            position: self.position.clone(),
-            speed: Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale( 250.0).add( &self.speed)
-        };
-
-        Box::new( bullet)
+        else {
+            None
+        }
     }   
 }
 
@@ -114,6 +107,7 @@ impl GameObject for Rocket {
     }
 
     fn render(&mut self, ctx: &CanvasRenderingContext2d) {
+        
         let sprite = if self.thrust > 0.0 { &self.sprite_on } else { &self.sprite_off };
 
         ctx.save();

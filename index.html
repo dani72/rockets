@@ -22,6 +22,11 @@
             try {
                 await init();
 
+                window.addEventListener("gamepadconnected", (e) => {
+                    console.log("Gamepad connected:", e.gamepad);
+
+                });
+
                 const rocketThrustOn = await loadImage("./assets/rocket_thrust_on.png");
                 const rocketThrustOff = await loadImage("./assets/rocket_thrust_off.png");
                 const asteroid = await loadImage("./assets/asteroid.png");
@@ -34,25 +39,24 @@
                 function animationLoop() {
                     try {
                         game.render();
+
+                        const gamepads = navigator.getGamepads();
+                        const gamepad = gamepads[1];
+
+                        if( gamepad ) {
+                            const rotate = gamepad.axes[0].toFixed(2);
+                            const thrust = gamepad.axes[1].toFixed(2);
+                            const fire = gamepad.buttons[0].pressed;
+
+                            game.update_active_object( -thrust, rotate, fire);
+                        }
+
                         requestAnimationFrame(animationLoop);
                     } catch (error) {
                         console.error("Error in animation loop:", error);
                     }
                 }
 
-                document.addEventListener('keydown', (event) => {
-                    // Update the Rust game state
-                    if (event.key === 'ArrowUp') game.up_pressed();
-                    if (event.key === 'ArrowDown') game.down_pressed();
-                    if (event.key === 'ArrowLeft') game.left_pressed();
-                    if (event.key === 'ArrowRight') game.right_pressed();
-                    if( event.key === ' ') game.space_pressed();
-                    if( event.key === 'a') game.a_pressed();
-                    if( event.key === 'd') game.d_pressed();
-                    if( event.key === 'w') game.w_pressed();
-                    if( event.key === 'x') game.x_pressed();
-                    if( event.keyy === 's') game.s_pressed();
-                });
 
                 // Start the animation loop
                 animationLoop();

@@ -20,11 +20,9 @@ pub trait GameObject {
 }
 
 pub trait ActiveObject : GameObject {
-    fn thrust_inc( &mut self);
-    fn thrust_dec( &mut self);
-    fn rotate_right( &mut self);
-    fn rotate_left( &mut self);
-    fn fire( &mut self) -> Box<dyn GameObject>;    
+    fn rotate( &mut self, value: f64);
+    fn thrust( &mut self, value: f64);
+    fn fire( &mut self, time: i64) -> Option<Box<dyn GameObject>>;    
 }
 
 #[derive(Clone)]
