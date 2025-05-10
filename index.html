@@ -29,26 +29,28 @@
 
                 const rocketThrustOn = await loadImage("./assets/rocket_thrust_on.png");
                 const rocketThrustOff = await loadImage("./assets/rocket_thrust_off.png");
-                const asteroid = await loadImage("./assets/asteroid.png");
+                const asteroid_small = await loadImage("./assets/asteroid_small.png");
+                const asteroid_medium = await loadImage("./assets/asteroid_medium.png");
+                const asteroid_big = await loadImage("./assets/asteroid_big.png");
                 const explosion = await loadImage("./assets/explosion.png");
                 const canvas = document.getElementById("game-canvas");
                 const ctx = canvas.getContext("2d");
 
-                const game = new Game( canvas.width, canvas.height, asteroid, rocketThrustOn, rocketThrustOff, explosion, ctx);
+                const game = new Game( canvas.width, canvas.height, asteroid_small, asteroid_medium, asteroid_big, rocketThrustOn, rocketThrustOff, explosion, ctx);
 
                 function animationLoop() {
                     try {
                         game.render();
 
                         const gamepads = navigator.getGamepads();
-                        const gamepad = gamepads[1];
+                        const gamepad = gamepads[2];
 
                         if( gamepad ) {
                             const rotate = gamepad.axes[0].toFixed(2);
-                            const thrust = gamepad.axes[1].toFixed(2);
+                            const thrust = gamepad.buttons[7].value * 25.0;
                             const fire = gamepad.buttons[0].pressed;
-
-                            game.update_active_object( -thrust, rotate, fire);
+console.log( "Thrust = " + thrust + " Rotate = " + rotate + " Fire = " + fire);
+                            game.update_active_object( thrust, rotate, fire);
                         }
 
                         requestAnimationFrame(animationLoop);

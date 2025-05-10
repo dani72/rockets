@@ -3,6 +3,8 @@ use crate::vmath::Vector;
 use crate::game::GameObject;
 use crate::game::GameObjectType;
 use crate::game::Area;
+use std::any::Any;
+use crate::game::GameObjectFactory;
 
 pub struct Explosion {
     pub time: f64,
@@ -11,6 +13,14 @@ pub struct Explosion {
  }
 
 impl GameObject for Explosion {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+
 
     fn get_type( &self) -> GameObjectType {
         return GameObjectType::Explosion;
@@ -44,5 +54,14 @@ impl GameObject for Explosion {
             self.image.height() as f64,
         ).unwrap();
         ctx.restore();
+    }
+
+    fn radius( &self) -> f64 {
+        return 10.0;
+    }
+
+
+    fn collision_with(&mut self, _objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
+        vec![]
     }
 }

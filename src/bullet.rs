@@ -3,6 +3,8 @@ use crate::vmath::Vector;
 use crate::game::GameObject;
 use crate::game::GameObjectType;
 use crate::game::Area;
+use std::any::Any;
+use crate::game::GameObjectFactory;
 
 pub struct Bullet {
     pub expired: bool,
@@ -12,6 +14,14 @@ pub struct Bullet {
  }
 
 impl GameObject for Bullet {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
+
 
     fn get_type( &self) -> GameObjectType {
         return GameObjectType::Bullet;
@@ -39,5 +49,15 @@ impl GameObject for Bullet {
         ctx.set_fill_style_str( "red");
     
         ctx.fill();
+    }
+
+    fn radius( &self) -> f64 {
+        return 3.0;
+    }
+
+    fn collision_with(&mut self, _objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
+        self.expire();
+
+        vec![]
     }
 }

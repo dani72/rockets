@@ -3,6 +3,8 @@ use crate::game::GameObjectType;
 use crate::vmath::Vector;
 use crate::game::GameObject;
 use crate::game::Area;
+use crate::game::GameObjectFactory;
+use std::any::Any;
 
 pub struct Asteroid {
     pub expired: bool,
@@ -10,6 +12,7 @@ pub struct Asteroid {
     pub rotation: f64,
     pub speed: Vector,
     pub acc: Vector,
+    pub radius: f64,
     pub image: HtmlImageElement,
  }
 
@@ -17,6 +20,13 @@ impl Asteroid {
 }
 
 impl GameObject for Asteroid {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
 
     fn get_type( &self) -> GameObjectType {
         return GameObjectType::Asteroid;
@@ -67,5 +77,14 @@ impl GameObject for Asteroid {
             self.image.height() as f64,
         ).unwrap();
         ctx.restore();
+    }
+
+    fn radius( &self) -> f64 {
+        return self.radius;
+    }
+
+
+    fn collision_with(&mut self, _objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
+        vec![]
     }
 }

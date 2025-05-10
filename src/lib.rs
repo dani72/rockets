@@ -19,6 +19,7 @@ use game::ActiveObject;
 use game::Area;
 use myrand::random_number;
 use vmath::ZERO;
+use game::GameObjectFactory;
 
 pub fn clone_sprite( image: &HtmlImageElement) -> HtmlImageElement{
     let document = window().unwrap().document().unwrap();
@@ -36,60 +37,72 @@ pub fn start() {
 
 #[wasm_bindgen]
 pub struct Game {
-    rocket1: Rocket,
-    rocket2: Rocket,
     game_area: Area,
-    ast : HtmlImageElement,
     exp : HtmlImageElement,
     ctx: CanvasRenderingContext2d,
     t: i64,
-    bullets: Vec<Box<dyn GameObject>>,
+    objfactory: GameObjectFactory,
     shapes: Vec<Box<dyn GameObject>>,
 }
 
 #[wasm_bindgen]
 impl Game {
     #[wasm_bindgen(constructor)]
-    pub fn new( game_width: f64,
-                game_height: f64,
-                asteroid_sprite: HtmlImageElement, 
-                rocket_thrust_on: HtmlImageElement, 
-                rocket_thrust_off: HtmlImageElement,
-                explosion_sprite: HtmlImageElement,
-                rendering_context: CanvasRenderingContext2d ) -> Game {
+    pub fn new(
+        game_width: f64,
+        game_height: f64,
+        ass: HtmlImageElement,
+        ams: HtmlImageElement,
+        als: HtmlImageElement,
+        rocket_thrust_on: HtmlImageElement,
+        rocket_thrust_off: HtmlImageElement,
+        explosion_sprite: HtmlImageElement,
+        rendering_context: CanvasRenderingContext2d,
+    ) -> Game {
+        let objfactory = GameObjectFactory {
+            asteroid_small_image: ass,
+            asteroid_medium_image: ams,
+            asteroid_large_image: als,
+        };
+        
+        let rocket1 = Rocket {
+            name: "Rocket1".to_string(),
+            position: Vector { x: 480.0, y: 100.0 },
+            rotation: 0.0,
+            speed: ZERO,
+            acc: ZERO,
+            thrust: 0.0,
+            sprite_on: clone_sprite(&rocket_thrust_on),
+            sprite_off: clone_sprite(&rocket_thrust_off),
+            last_shot: 0,
+        };
+        let rocket2 = Rocket {
+            name: "Rocket2".to_string(),
+            position: Vector { x: 300.0, y: 50.0 },
+            rotation: 0.0,
+            speed: ZERO,
+            acc: ZERO,
+            thrust: 0.0,
+            sprite_on: clone_sprite(&rocket_thrust_on),
+            sprite_off: clone_sprite(&rocket_thrust_off),
+            last_shot: 0,
+        };
+        
+        let mut shapes: Vec<Box<dyn GameObject>> = vec![];
+
+        shapes.push( Box::new( rocket1));
+        shapes.push( Box::new( rocket2));
+
         Game {
-            rocket1: Rocket {
-                name: "Rocket1".to_string(),
-                position: Vector { x: 480.0, y: 100.0 },
-                rotation: 0.0,
-                speed: ZERO,
-                acc : ZERO,
-                thrust: 0.0,
-                sprite_on: clone_sprite( &rocket_thrust_on),
-                sprite_off: clone_sprite( &rocket_thrust_off),
-                last_shot: 0
-            },
-            rocket2: Rocket {
-                name: "Rocket2".to_string(),
-                position: Vector { x: 300.0, y: 50.0 },
-                rotation: 0.0,
-                speed: ZERO,
-                acc : ZERO,
-                thrust: 0.0,
-                sprite_on: clone_sprite( &rocket_thrust_on),
-                sprite_off: clone_sprite( &rocket_thrust_off),
-                last_shot: 0
-            },
-            game_area: Area {  // Game area
+            game_area: Area {
                 width: game_width,
                 height: game_height,
             },
             ctx: rendering_context,
-            ast: asteroid_sprite,
             exp: explosion_sprite,
             t: Self::now_ms(),
-            bullets: vec![],
-            shapes: vec![]
+            objfactory,
+            shapes
         }
     }
 
@@ -97,16 +110,9 @@ impl Game {
         let mut i = 0;
 
         while i < nof  {
-            let asteroid = Asteroid {
-                expired: false,
-                position: Vector { x: 20.0 * random_number(), y: 15.0 * random_number() },
-                rotation: 0.0,
-                speed: Vector { x: 5.0 + random_number(), y: 5.0 - random_number() },
-                acc : ZERO,
-                image: clone_sprite( &self.ast)
-            };
+            let asteroid = self.objfactory.create_asteroid_large( Vector { x: 20.0 * random_number(), y: 15.0 * random_number() }, Vector { x: 5.0 + random_number(), y: 5.0 - random_number() });
 
-            self.shapes.push( Box::new( asteroid));
+            self.shapes.push( asteroid);
 
             i+=1;
         }
@@ -119,90 +125,49 @@ impl Game {
     fn update(&mut self) {
         let delta_t = (Self::now_ms() - self.t) as f64 / 1000.0;
         
-        self.rocket1.move_t( delta_t, self.game_area.clone());
-        self.rocket2.move_t( delta_t, self.game_area.clone());
-
-        self.bullets.iter_mut().for_each(|bullet| bullet.move_t( delta_t, self.game_area.clone()));
         self.shapes.iter_mut().for_each(|shape| shape.move_t( delta_t, self.game_area.clone()));
 
         self.t = Self::now_ms();
     }
 
     fn check_collisions(&mut self) {
-        let mut expl: Option<Explosion> = None;
 
-        for shape in self.shapes.iter_mut() {
-            if self.rocket1.current_position().distance( &shape.current_position()) < 30.0 {
-                if matches!( shape.get_type(), GameObjectType::Asteroid) {
-                    shape.expire();
-                    expl = Some( Explosion {
-                        time: 0.0,
-                        position: shape.current_position(),
-                        image: clone_sprite( &self.exp)
-                    });
-                }
-            }
+        let len = self.shapes.len();
+        for i in 0..len {
+            for j in (i + 1)..len {
+                let (left, right) = self.shapes.split_at_mut(j);
+                let obj1 = &mut *left[i];  // Dereference the Box
+                let obj2 = &mut *right[0]; // Dereference the Box
 
-            if self.rocket2.current_position().distance( &shape.current_position()) < 30.0 {
-                if matches!( shape.get_type(), GameObjectType::Asteroid) {
-                    shape.expire();
-                    expl = Some( Explosion {
-                        time: 0.0,
-                        position: shape.current_position(),
-                        image: clone_sprite( &self.exp)
-                    });
-                }
-            }
-        }
+                if obj1.distance( obj2) < (obj1.radius() + obj2.radius()) {
+                    let msg = format!("Collision detected between object {} and {}", i, j);
+                    web_sys::console::log_1(&JsValue::from_str(&msg));
+                    
+                    let new_from_obj1 = obj1.collision_with(obj2.get_type(), &self.objfactory);
+                    let new_from_obj2 = obj2.collision_with(obj1.get_type(), &self.objfactory);
 
-        if let Some( explosion) = expl {
-            self.shapes.push( Box::new( explosion));
-        }
-
-        let mut expl2: Option<Explosion> = None;
-
-        for bullet in self.bullets.iter_mut() {
-            for shape in self.shapes.iter_mut() {
-                if bullet.current_position().distance( &shape.current_position()) < 30.0 {
-                    if matches!( shape.get_type(), GameObjectType::Asteroid) {
-                        bullet.expire();
-                        shape.expire();
-                        expl2 = Some( Explosion {
-                            time: 0.0,
-                            position: shape.current_position(),
-                            image: clone_sprite( &self.exp)
-                        });
+                    // Append the resulting objects to self.shapes
+                    for obj in new_from_obj1.into_iter().chain(new_from_obj2) {
+                        self.shapes.push(obj);
                     }
                 }
             }
         }
-
-        if let Some( explosion) = expl2 {
-            self.shapes.push( Box::new( explosion));
-        }
-
     }
 
     pub fn render(&mut self) -> Result<(), JsValue> {
         self.update();
         self.check_collisions();
         
-        self.bullets.retain( |x| !x.is_expired());
         self.shapes.retain( |x| !x.is_expired());
 
         self.ctx.clear_rect(0.0, 0.0, self.game_area.width, self.game_area.height);
         
-        self.rocket1.render( &self.ctx);
-        self.rocket2.render( &self.ctx);
-
-        for bullet in self.bullets.iter_mut() {
-            bullet.render( &self.ctx);
-        }
         for shape in self.shapes.iter_mut() {
             shape.render( &self.ctx);
         }
         
-        if self.shapes.len() == 0 {
+        if self.shapes.len() <= 2 {
             web_sys::console::log_1(&JsValue::from_str("You win!"));
             self.create_asteroids(20);
         }
@@ -211,13 +176,17 @@ impl Game {
     }
 
     pub fn update_active_object( &mut self, thrust: f64, rotate: f64, fire: bool) {
-        self.rocket1.thrust( thrust);
-        self.rocket1.rotate( rotate);
+        if let Some(rocket) = self.shapes[0].as_any_mut().downcast_mut::<Rocket>() {
+            let active: &mut dyn ActiveObject = rocket;
+            
+            active.thrust( thrust);
+            active.rotate( rotate);
 
-        if fire {
-            let now = Self::now_ms();
-            if let Some(bullet) = self.rocket1.fire(now) {
-                self.bullets.push(bullet);
+            if fire {
+                let now = Self::now_ms();
+                if let Some(bullet) = active.fire(now) {
+                    self.shapes.push(bullet);
+                }
             }
         }
     }

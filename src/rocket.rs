@@ -6,6 +6,8 @@ use crate::game::GameObject;
 use crate::game::Area;
 use crate::game::GameObjectType;
 use crate::bullet::Bullet;
+use std::any::Any;
+use crate::game::GameObjectFactory;
 
 pub struct Rocket {
     pub name: String,
@@ -68,6 +70,13 @@ impl ActiveObject for Rocket {
 }
 
 impl GameObject for Rocket {
+    fn as_any(&self) -> &dyn Any {
+        self
+    }
+
+    fn as_any_mut(&mut self) -> &mut dyn Any {
+        self
+    }
 
     fn get_type( &self) -> GameObjectType {
         return GameObjectType::Rocket;
@@ -121,5 +130,13 @@ impl GameObject for Rocket {
             sprite.height() as f64,
         ).unwrap();
         ctx.restore();
+    }
+
+    fn radius( &self) -> f64 {
+        20.0
+    }
+
+    fn collision_with(&mut self, _objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
+        vec![]
     }
 }
