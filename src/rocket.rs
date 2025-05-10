@@ -10,7 +10,6 @@ use std::any::Any;
 use crate::game::GameObjectFactory;
 
 pub struct Rocket {
-    pub name: String,
     pub position: Vector,
     pub rotation: f64,
     pub speed: Vector,
@@ -22,10 +21,6 @@ pub struct Rocket {
  }
 
 impl Rocket {
-    fn status( &mut self) {
-//        console::log_1( &format!("{}: x = {}, y = {} (Speed {}, {}) (Acc {} {}) (Thrust {})", self.name, self.position.x, self.position.y, self.speed.x, self.speed.y, self.acc.x, self.acc.y, self.thrust).into());
-    }
-
     fn update_acc( &mut self) {
         self.acc = Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale(self.thrust); //.add( &GRAVITY);
     }
@@ -34,12 +29,11 @@ impl Rocket {
 impl ActiveObject for Rocket {
 
     fn thrust( &mut self, value : f64) {
-        if( value >= 0.0 && value <= 1.0) {
-            self.thrust = 20.0 * value;
+        if value >= 0.0 && value <= 1.0 {
+            self.thrust = 100.0 * value;
         }
 
         self.update_acc();
-        self.status();
     }
 
 
@@ -47,18 +41,21 @@ impl ActiveObject for Rocket {
         self.rotation += value * 0.1;
 
         self.update_acc();
-        self.status();
     }
 
     fn fire( &mut self, time: i64) -> Option<Box<dyn GameObject>> {
         if self.last_shot == 0 || (time - self.last_shot) > 100 {
             self.last_shot = time;
 
+            let tempo = Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale( 250.0).add( &self.speed);
+            let displacement = tempo.normalize().scale( 25.0);
+            let start = self.position.add( &displacement);
+
             let bullet = Bullet {
                 expired: false,
-                start_position: self.position.clone(),
-                position: self.position.clone(),
-                speed: Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale( 250.0).add( &self.speed)
+                start_position: start,
+                position: start,
+                speed: tempo
             };
 
             Some(Box::new(bullet))

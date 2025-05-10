@@ -4,9 +4,18 @@ use crate::vmath::Vector;
 use crate::game::GameObject;
 use crate::game::Area;
 use crate::game::GameObjectFactory;
+use crate::myrand::random_number;
 use std::any::Any;
 
+#[derive(PartialEq, Eq)]
+pub enum AsteroidSize {
+    Small,
+    Medium,
+    Large,
+}
+
 pub struct Asteroid {
+    pub size: AsteroidSize,
     pub expired: bool,
     pub position: Vector,
     pub rotation: f64,
@@ -84,7 +93,28 @@ impl GameObject for Asteroid {
     }
 
 
-    fn collision_with(&mut self, _objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
+    fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
+        if objtype == GameObjectType::Bullet {
+            let mut result = Vec::new();
+
+            if self.size == AsteroidSize::Large {
+                result.push( objfactory.create_asteroid_medium(self.position, self.speed));
+                result.push(objfactory.create_asteroid_medium(self.position, self.speed));
+            } else if self.size == AsteroidSize::Medium {
+                result.push(objfactory.create_asteroid_small(
+                    self.position,
+                    self.speed.add(&Vector {
+                        x: 5.0 * random_number(),
+                        y: 5.0 * random_number(),
+                    }),
+                ));
+                result.push(objfactory.create_asteroid_small(self.position, self.speed));
+            }
+
+            self.expire();
+
+            return result;
+        }
         vec![]
     }
 }

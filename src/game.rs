@@ -1,8 +1,14 @@
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 use crate::vmath::Vector;
+use crate::myrand::random_number;
 use std::any::Any;
 use crate::asteroid::Asteroid;
+use crate::asteroid::AsteroidSize;
+use crate::explosion::Explosion;
+use crate::rocket::Rocket;
+use crate::vmath::ZERO;
 
+#[derive(PartialEq, Eq)]
 pub enum GameObjectType {
     Asteroid,
     Rocket,
@@ -46,35 +52,41 @@ pub struct GameObjectFactory {
     pub asteroid_small_image: HtmlImageElement,
     pub asteroid_medium_image: HtmlImageElement,
     pub asteroid_large_image: HtmlImageElement,
+    pub explosion_image: HtmlImageElement,
+    pub rocket_thrust_on_image: HtmlImageElement,
+    pub rocket_thrust_off_image: HtmlImageElement,
 }
 
 impl GameObjectFactory {
-    pub fn create_asteroid_small( &mut self, position: Vector) -> Box<dyn GameObject> {
+    pub fn create_asteroid_small( &self, position: Vector, speed: Vector) -> Box<dyn GameObject> {
         Box::new(Asteroid {
+            size: AsteroidSize::Small,
             expired: false,
             position: position,
             rotation: 0.0,
-            speed: Vector::new(0.0, 0.0),
+            speed: speed,
             acc: Vector::new(0.0, 0.0),
             radius: 10.0,
             image: self.asteroid_small_image.clone(),
         })
     }
 
-    pub fn create_asteroid_medium( &mut self, position: Vector) -> Box<dyn GameObject> {
+    pub fn create_asteroid_medium( &self, position: Vector, speed: Vector) -> Box<dyn GameObject> {
         Box::new(Asteroid {
+            size: AsteroidSize::Medium,
             expired: false,
             position: position,
             rotation: 0.0,
-            speed: Vector::new(0.0, 0.0),
+            speed: speed,
             acc: Vector::new(0.0, 0.0),
             radius: 20.0,
             image: self.asteroid_medium_image.clone(),
         })
     }
 
-    pub fn create_asteroid_large( &mut self, position: Vector, speed: Vector) -> Box<dyn GameObject> {
+    pub fn create_asteroid_large( &self, position: Vector, speed: Vector) -> Box<dyn GameObject> {
         Box::new(Asteroid {
+            size: AsteroidSize::Large,
             expired: false,
             position: position,
             rotation: 0.0,
@@ -82,6 +94,41 @@ impl GameObjectFactory {
             acc: Vector::new(0.0, 0.0),
             radius: 30.0,
             image: self.asteroid_large_image.clone(),
+        })
+    }
+
+    pub fn create_explosion( &self, position: Vector) -> Box<dyn GameObject> {
+        Box::new(Explosion {
+            time: 0.0f64,
+            position: position,
+            image: self.explosion_image.clone(),
+        })
+    }
+
+    pub fn create_asteroids( &self, nof : i32) -> Vec<Box<dyn GameObject>> {
+        let mut i = 0;
+        let mut asteroids = vec![];
+
+        while i < nof  {
+            let asteroid = self.create_asteroid_large( Vector { x: 20.0 * random_number(), y: 15.0 * random_number() }, Vector { x: 5.0 + random_number(), y: 5.0 - random_number() });
+            asteroids.push(asteroid);
+
+            i+=1;
+        }
+
+        return asteroids;
+    }
+
+    pub fn create_rocket( &self, pos: Vector) -> Box<dyn GameObject> {
+        Box::new( Rocket {
+            position: pos,
+            rotation: 0.0,
+            speed: ZERO,
+            acc: ZERO,
+            thrust: 0.0,
+            sprite_on: self.rocket_thrust_on_image.clone(),
+            sprite_off: self.rocket_thrust_off_image.clone(),
+            last_shot: 0,
         })
     }
 }

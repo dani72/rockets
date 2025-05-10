@@ -43,13 +43,13 @@
                         game.render();
 
                         const gamepads = navigator.getGamepads();
-                        const gamepad = gamepads[2];
+                        const gamepad = gamepads[0];
 
                         if( gamepad ) {
                             const rotate = gamepad.axes[0].toFixed(2);
-                            const thrust = gamepad.buttons[7].value * 25.0;
+                            const thrust = gamepad.buttons[7].value;
                             const fire = gamepad.buttons[0].pressed;
-console.log( "Thrust = " + thrust + " Rotate = " + rotate + " Fire = " + fire);
+//console.log( "Thrust = " + thrust + " Rotate = " + rotate + " Fire = " + fire);
                             game.update_active_object( thrust, rotate, fire);
                         }
 

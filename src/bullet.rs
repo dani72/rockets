@@ -5,6 +5,7 @@ use crate::game::GameObjectType;
 use crate::game::Area;
 use std::any::Any;
 use crate::game::GameObjectFactory;
+use wasm_bindgen::JsValue;
 
 pub struct Bullet {
     pub expired: bool,
@@ -55,8 +56,12 @@ impl GameObject for Bullet {
         return 3.0;
     }
 
-    fn collision_with(&mut self, _objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
+    fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
         self.expire();
+
+        if objtype == GameObjectType::Asteroid {
+            return vec![objfactory.create_explosion(self.position.clone())];
+        }
 
         vec![]
     }
