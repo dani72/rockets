@@ -86,7 +86,7 @@ impl Game {
     fn update(&mut self) {
         let delta_t = (Self::now_ms() - self.t) as f64 / 1000.0;
         
-        self.shapes.iter_mut().for_each(|shape| shape.move_t( delta_t, self.game_area.clone()));
+        self.shapes.iter_mut().for_each(|shape| shape.move_t( delta_t, self.game_area));
 
         self.t = Self::now_ms();
     }
@@ -116,13 +116,10 @@ impl Game {
         self.update();
         self.check_collisions();
         
-        self.shapes.retain( |x| !x.is_expired());
-
         self.ctx.clear_rect(0.0, 0.0, self.game_area.width, self.game_area.height);
-        
-        for shape in self.shapes.iter_mut() {
-            shape.render( &self.ctx);
-        }
+
+        self.shapes.retain( |x| !x.is_expired());
+        self.shapes.iter_mut().for_each(|shape| shape.render(&self.ctx));
         
         if self.shapes.len() <= 2 {
             web_sys::console::log_1(&JsValue::from_str("You win!"));
@@ -137,14 +134,13 @@ impl Game {
     pub fn update_rocket( &mut self, index: usize, thrust: f64, rotate: f64, fire: bool, shield: bool) {
         if let Some(rocket) = self.shapes[index].as_any_mut().downcast_mut::<Rocket>() {
             let now = Self::now_ms();
-            let active: &mut dyn ActiveObject = rocket;
             
-            active.thrust( thrust);
-            active.rotate( rotate);
-            active.shield( shield);
+            rocket.thrust( thrust);
+            rocket.rotate( rotate);
+            rocket.shield( shield);
 
             if fire {
-                if let Some(bullet) = active.fire(now) {
+                if let Some(bullet) = rocket.fire(now) {
                     self.shapes.push(bullet);
                 }
             }

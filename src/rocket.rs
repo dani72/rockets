@@ -190,7 +190,7 @@ impl GameObject for Rocket {
                 self.damage += 100;
             }
 
-            return vec![objfactory.create_explosion(self.position.clone())];
+            return vec![objfactory.create_explosion(self.position)];
         }
         else if objtype == GameObjectType::Bullet {
             if !self.is_shield_active() {

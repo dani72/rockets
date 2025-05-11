@@ -67,7 +67,7 @@ impl GameObject for Bullet {
                 (*self.rocket).score += 100;
             }
 
-            return vec![objfactory.create_explosion(self.position.clone())];
+            return vec![objfactory.create_explosion(self.position)];
         }
 
         vec![]

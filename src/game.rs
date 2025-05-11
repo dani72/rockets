@@ -43,7 +43,7 @@ pub trait ActiveObject : GameObject {
     fn shield( &mut self, shield: bool);
 }
 
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct Area {
     pub width: f64,
     pub height: f64,
