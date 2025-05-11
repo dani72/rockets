@@ -184,10 +184,28 @@ impl GameObject for Rocket {
         20.0
     }
 
-    fn collision_with(&mut self, objtype: GameObjectType, _objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
+    fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
         if objtype == GameObjectType::Asteroid {
             if !self.is_shield_active() {
                 self.damage += 100;
+            }
+
+            return vec![objfactory.create_explosion(self.position.clone())];
+        }
+        else if objtype == GameObjectType::Bullet {
+            if !self.is_shield_active() {
+                self.damage += 50;
+            }
+            else {
+                self.shield_time += 0.01;
+            }
+        }
+        else if objtype == GameObjectType::Rocket {
+            if !self.is_shield_active() {
+                self.damage += 500;
+            }
+            else {
+                self.shield_time += 0.05;
             }
         }
         vec![]

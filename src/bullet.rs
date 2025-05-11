@@ -1,5 +1,4 @@
 use web_sys::CanvasRenderingContext2d;
-use crate::game::ActiveObject;
 use crate::vmath::Vector;
 use crate::game::GameObject;
 use crate::game::GameObjectType;
@@ -61,7 +60,7 @@ impl GameObject for Bullet {
 
     fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
 
-        if objtype == GameObjectType::Asteroid {
+        if objtype == GameObjectType::Asteroid  || objtype == GameObjectType::Rocket {
             self.expire();
 
             unsafe {

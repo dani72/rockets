@@ -94,7 +94,7 @@ impl GameObject for Asteroid {
 
 
     fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
-        if objtype == GameObjectType::Bullet {
+        if objtype == GameObjectType::Bullet || objtype == GameObjectType::Rocket {
             let mut result = Vec::new();
 
             if self.size == AsteroidSize::Large {
