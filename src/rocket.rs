@@ -52,9 +52,9 @@ impl ActiveObject for Rocket {
         if self.last_shot == 0 || (time - self.last_shot) > 100 {
             self.last_shot = time;
 
+            let rotvec = Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale( 25.0);
             let tempo = Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale( 250.0).add( &self.speed);
-            let displacement = tempo.normalize().scale( 25.0);
-            let start = self.position.add( &displacement);
+            let start = self.position.add( &rotvec);
 
             let bullet = Bullet {
                 expired: false,
