@@ -134,15 +134,16 @@ impl Game {
         Ok(())
     }
 
-    pub fn update_rocket( &mut self, index: usize, thrust: f64, rotate: f64, fire: bool) {
+    pub fn update_rocket( &mut self, index: usize, thrust: f64, rotate: f64, fire: bool, shield: bool) {
         if let Some(rocket) = self.shapes[index].as_any_mut().downcast_mut::<Rocket>() {
+            let now = Self::now_ms();
             let active: &mut dyn ActiveObject = rocket;
             
             active.thrust( thrust);
             active.rotate( rotate);
+            active.shield( shield);
 
             if fire {
-                let now = Self::now_ms();
                 if let Some(bullet) = active.fire(now) {
                     self.shapes.push(bullet);
                 }

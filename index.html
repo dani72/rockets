@@ -62,8 +62,9 @@
                     const rotate = gamepad.axes[0].toFixed(2);
                     const thrust = gamepad.buttons[7].value;
                     const fire = gamepad.buttons[0].pressed;
+                    const shield = gamepad.buttons[1].pressed;
 
-                    game.update_rocket( index, thrust, rotate, fire);
+                    game.update_rocket( index, thrust, rotate, fire, shield);
                 }
 
                 function animationLoop() {

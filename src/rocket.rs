@@ -8,8 +8,6 @@ use crate::game::GameObjectType;
 use crate::bullet::Bullet;
 use std::any::Any;
 use crate::game::GameObjectFactory;
-use std::rc::Rc;
-use std::cell::RefCell;
 
 pub struct Rocket {
     pub score: i32,
@@ -23,11 +21,17 @@ pub struct Rocket {
     pub sprite_on: HtmlImageElement,
     pub sprite_off: HtmlImageElement,
     pub last_shot: i64,
+    pub shield_on: bool,
+    pub shield_time: f64,
  }
 
 impl Rocket {
     fn update_acc( &mut self) {
         self.acc = Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale(self.thrust); //.add( &GRAVITY);
+    }
+
+    fn is_shield_active( &self) -> bool {
+        return self.shield_on && (self.shield_time > 0.0) && (self.shield_time < 2.0);
     }
 }
 
@@ -70,6 +74,17 @@ impl ActiveObject for Rocket {
             None
         }
     }   
+
+    fn shield( &mut self, shield: bool) {
+        if !self.shield_on && shield {
+            self.shield_on = true;
+            web_sys::console::log_1(&format!("Activate shield: {}/{}", self.shield_on, self.shield_time).into());
+        }
+        else if self.shield_on && !shield {
+            self.shield_on = false;
+            web_sys::console::log_1(&format!("Deactivate shield: {}/{}", self.shield_on, self.shield_time).into());
+        }
+    }
 }
 
 impl GameObject for Rocket {
@@ -116,6 +131,17 @@ impl GameObject for Rocket {
         if self.position.y < 0.0 {
             self.position.y = game_area.height;
         }
+
+        if self.shield_on {
+            if self.shield_time < 2.0 {
+                self.shield_time += delta_t;
+            }
+        }
+        else {
+            if self.shield_time > 0.0 {
+                self.shield_time -= delta_t;
+            }
+        }
     }
 
     fn render(&mut self, ctx: &CanvasRenderingContext2d) {
@@ -132,6 +158,16 @@ impl GameObject for Rocket {
             sprite.width() as f64,
             sprite.height() as f64,
         ).unwrap();
+
+        // Draw a shield circle
+        if self.is_shield_active() {
+            ctx.begin_path();
+            ctx.arc(0.0, 0.0, self.radius() + 10.0, 0.0, std::f64::consts::PI * 2.0).unwrap();
+            ctx.set_stroke_style(&wasm_bindgen::JsValue::from_str("rgba(0, 200, 255, 0.5)"));
+            ctx.set_line_width(3.0);
+            ctx.stroke();
+        }
+
         ctx.restore();
 
         // Draw the score at a fixed position
@@ -150,7 +186,9 @@ impl GameObject for Rocket {
 
     fn collision_with(&mut self, objtype: GameObjectType, _objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
         if objtype == GameObjectType::Asteroid {
-            self.damage += 100;
+            if !self.is_shield_active() {
+                self.damage += 100;
+            }
         }
         vec![]
     }

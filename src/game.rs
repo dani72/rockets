@@ -39,7 +39,8 @@ pub trait GameObject : Any {
 pub trait ActiveObject : GameObject {
     fn rotate( &mut self, value: f64);
     fn thrust( &mut self, value: f64);
-    fn fire( &mut self, time: i64) -> Option<Box<dyn GameObject>>;    
+    fn fire( &mut self, time: i64) -> Option<Box<dyn GameObject>>;
+    fn shield( &mut self, shield: bool);
 }
 
 #[derive(Clone)]
@@ -132,6 +133,8 @@ impl GameObjectFactory {
             sprite_on: self.rocket_thrust_on_image.clone(),
             sprite_off: self.rocket_thrust_off_image.clone(),
             last_shot: 0,
+            shield_on: false,
+            shield_time: 0.0,
         })
     }
 }
