@@ -10,6 +10,9 @@ use std::any::Any;
 use crate::game::GameObjectFactory;
 
 pub struct Rocket {
+    pub score: i32,
+    pub damage: i32,
+    pub score_pos: Vector,
     pub position: Vector,
     pub rotation: f64,
     pub speed: Vector,
@@ -127,13 +130,25 @@ impl GameObject for Rocket {
             sprite.height() as f64,
         ).unwrap();
         ctx.restore();
+
+        // Draw the score at a fixed position
+        ctx.set_font("16px sans-serif");
+        ctx.set_fill_style(&wasm_bindgen::JsValue::from_str("black"));
+        let score_text = format!("Score: {}", self.score);
+        ctx.fill_text(&score_text, self.score_pos.x, self.score_pos.y).unwrap();
+        let damage_text = format!("Damage: {}", self.damage);
+        ctx.fill_text(&damage_text, self.score_pos.x, self.score_pos.y + 20.0).unwrap();
+        
     }
 
     fn radius( &self) -> f64 {
         20.0
     }
 
-    fn collision_with(&mut self, _objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
+    fn collision_with(&mut self, objtype: GameObjectType, _objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
+        if objtype == GameObjectType::Asteroid {
+            self.damage += 100;
+        }
         vec![]
     }
 }

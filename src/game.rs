@@ -119,8 +119,11 @@ impl GameObjectFactory {
         return asteroids;
     }
 
-    pub fn create_rocket( &self, pos: Vector) -> Box<dyn GameObject> {
+    pub fn create_rocket( &self, pos: Vector, score_position: Vector) -> Box<dyn GameObject> {
         Box::new( Rocket {
+            score: 0,
+            damage: 0,
+            score_pos: score_position,
             position: pos,
             rotation: 0.0,
             speed: ZERO,

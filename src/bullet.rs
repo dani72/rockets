@@ -57,9 +57,9 @@ impl GameObject for Bullet {
     }
 
     fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
-        self.expire();
 
         if objtype == GameObjectType::Asteroid {
+            self.expire();
             return vec![objfactory.create_explosion(self.position.clone())];
         }
 

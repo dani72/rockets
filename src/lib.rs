@@ -64,8 +64,8 @@ impl Game {
        
         let mut shapes: Vec<Box<dyn GameObject>> = vec![];
 
-        shapes.push( objfactory.create_rocket( Vector { x: 300.0, y: 100.0 }));
-        shapes.push( objfactory.create_rocket( Vector { x: 480.0, y: 100.0 }));
+        shapes.push( objfactory.create_rocket( Vector { x: 300.0, y: 100.0 }, Vector { x: 50.0, y: 50.0 }));
+        shapes.push( objfactory.create_rocket( Vector { x: 480.0, y: 100.0 }, Vector { x: game_width - 200.0, y: 50.0 }));
 
         Game {
             game_area: Area {
@@ -134,8 +134,8 @@ impl Game {
         Ok(())
     }
 
-    pub fn update_active_object( &mut self, thrust: f64, rotate: f64, fire: bool) {
-        if let Some(rocket) = self.shapes[0].as_any_mut().downcast_mut::<Rocket>() {
+    pub fn update_rocket( &mut self, index: usize, thrust: f64, rotate: f64, fire: bool) {
+        if let Some(rocket) = self.shapes[index].as_any_mut().downcast_mut::<Rocket>() {
             let active: &mut dyn ActiveObject = rocket;
             
             active.thrust( thrust);
