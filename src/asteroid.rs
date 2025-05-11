@@ -98,9 +98,10 @@ impl GameObject for Asteroid {
             let mut result = Vec::new();
 
             if self.size == AsteroidSize::Large {
-                result.push( objfactory.create_asteroid_medium(self.position, self.speed));
-                result.push(objfactory.create_asteroid_medium(self.position, self.speed));
-            } else if self.size == AsteroidSize::Medium {
+                result.push( objfactory.create_asteroid_medium(self.position, self.speed.add( &Vector::new( 2.0 * random_number(),5.0 * random_number()))));
+                result.push(objfactory.create_asteroid_medium(self.position, self.speed.add( &Vector::new( 2.0 * random_number(),5.0 * random_number()))));
+            } 
+            else if self.size == AsteroidSize::Medium {
                 result.push(objfactory.create_asteroid_small(
                     self.position,
                     self.speed.add(&Vector {
