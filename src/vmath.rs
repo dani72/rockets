@@ -44,4 +44,15 @@ impl Vector {
     pub fn distance(&self, other: &Self) -> f64 {
         ((self.x - other.x).powi(2) + (self.y - other.y).powi(2)).sqrt()
     }
+
+    pub fn rotate(&self, angle: f64) -> Self {
+        let cos_theta = angle.cos();
+        let sin_theta = angle.sin();
+        Self {
+            x: self.x * cos_theta - self.y * sin_theta,
+            y: self.x * sin_theta + self.y * cos_theta,
+        }
+    }
 }
+
+    

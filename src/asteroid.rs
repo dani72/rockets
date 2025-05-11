@@ -97,12 +97,24 @@ impl GameObject for Asteroid {
             let mut result = Vec::new();
 
             if self.size == AsteroidSize::Large {
-                result.push( objfactory.create_asteroid_medium(self.position, self.speed.add( &Vector::new( 1.2 * random_number(),5.0 * random_number()))));
-                result.push(objfactory.create_asteroid_medium(self.position, self.speed.add( &Vector::new( 1.2 * random_number(),5.0 * random_number()))));
+                let base_dir = self.speed.normalize();
+                let perp = Vector { x: -base_dir.y, y: base_dir.x };
+                for _ in 0..2 {
+                    let angle = (random_number() - 0.5) * std::f64::consts::PI / 2.0;
+                    let impulse = perp.rotate(angle).scale((random_number() * 50.0 + 30.0) * 0.5); // mass scaling: quarter mass => half speed
+                    let new_speed = self.speed.add(&impulse);
+                    result.push(objfactory.create_asteroid_medium(self.position, new_speed));
+                }
             } 
             else if self.size == AsteroidSize::Medium {
-                result.push(objfactory.create_asteroid_small( self.position, self.speed.add(&Vector { x: 2.0 * random_number(), y: 5.0 * random_number()})));
-                result.push(objfactory.create_asteroid_small( self.position, self.speed.add(&Vector { x: 2.0 * random_number(), y: 5.0 * random_number()})));
+                let base_dir = self.speed.normalize();
+                let perp = Vector { x: -base_dir.y, y: base_dir.x };
+                for _ in 0..2 {
+                    let angle = (random_number() - 0.5) * std::f64::consts::PI / 2.0;
+                    let impulse = perp.rotate(angle).scale((random_number() * 50.0 + 30.0)); // slightly faster for smaller fragments
+                    let new_speed = self.speed.add(&impulse);
+                    result.push(objfactory.create_asteroid_small(self.position, new_speed));
+                }
             }
 
             self.expire();

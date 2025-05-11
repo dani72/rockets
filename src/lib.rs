@@ -88,9 +88,8 @@ impl Game {
     fn start_new_round( &mut self) {
         let round_text = format!("Round : {}", self.round);
         self.shapes.push(Box::new(Announcer { time: 0.0, position: Vector { x: self.game_area.width / 2.0 - 100.0, y: self.game_area.height / 2.0, }, text: round_text }));
+        self.shapes.extend( self.objfactory.create_asteroids(self.round * 2, self.game_area, self.round as f64 * 30.0));
         self.round += 1;
-
-        self.shapes.extend( self.objfactory.create_asteroids(self.round * 4));
     }
 
     fn update(&mut self) {

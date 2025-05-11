@@ -1,5 +1,6 @@
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
 use crate::vmath::Vector;
+use crate::myrand::random_number_max;
 use crate::myrand::random_number;
 use std::any::Any;
 use crate::asteroid::Asteroid;
@@ -107,12 +108,12 @@ impl GameObjectFactory {
         })
     }
 
-    pub fn create_asteroids( &self, nof : i32) -> Vec<Box<dyn GameObject>> {
+    pub fn create_asteroids( &self, nof : i32, area: Area, max_speed: f64) -> Vec<Box<dyn GameObject>> {
         let mut i = 0;
         let mut asteroids = vec![];
 
         while i < nof  {
-            let asteroid = self.create_asteroid_large( Vector { x: 20.0 * random_number(), y: 15.0 * random_number() }, Vector { x: 5.0 + random_number(), y: 5.0 - random_number() });
+            let asteroid = self.create_asteroid_large( Vector { x: random_number_max( area.width as f64), y: random_number_max( area.height as f64) }, Vector { x: max_speed * random_number(), y: max_speed * random_number()});
             asteroids.push(asteroid);
 
             i+=1;

@@ -7,5 +7,9 @@ extern "C" {
 }
 
 pub fn random_number() -> f64 {
-    (random() * 100.0) as f64
+    random() as f64
+}
+
+pub fn random_number_max( max : f64) -> f64 {
+    random() as f64 * max
 }
