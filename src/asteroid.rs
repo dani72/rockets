@@ -92,24 +92,17 @@ impl GameObject for Asteroid {
         return self.radius;
     }
 
-
     fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
         if objtype == GameObjectType::Bullet || objtype == GameObjectType::Rocket {
             let mut result = Vec::new();
 
             if self.size == AsteroidSize::Large {
-                result.push( objfactory.create_asteroid_medium(self.position, self.speed.add( &Vector::new( 2.0 * random_number(),5.0 * random_number()))));
-                result.push(objfactory.create_asteroid_medium(self.position, self.speed.add( &Vector::new( 2.0 * random_number(),5.0 * random_number()))));
+                result.push( objfactory.create_asteroid_medium(self.position, self.speed.add( &Vector::new( 1.2 * random_number(),5.0 * random_number()))));
+                result.push(objfactory.create_asteroid_medium(self.position, self.speed.add( &Vector::new( 1.2 * random_number(),5.0 * random_number()))));
             } 
             else if self.size == AsteroidSize::Medium {
-                result.push(objfactory.create_asteroid_small(
-                    self.position,
-                    self.speed.add(&Vector {
-                        x: 5.0 * random_number(),
-                        y: 5.0 * random_number(),
-                    }),
-                ));
-                result.push(objfactory.create_asteroid_small(self.position, self.speed));
+                result.push(objfactory.create_asteroid_small( self.position, self.speed.add(&Vector { x: 2.0 * random_number(), y: 5.0 * random_number()})));
+                result.push(objfactory.create_asteroid_small( self.position, self.speed.add(&Vector { x: 2.0 * random_number(), y: 5.0 * random_number()})));
             }
 
             self.expire();
