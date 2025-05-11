@@ -5,6 +5,8 @@ mod game;
 mod myrand;
 mod explosion;
 mod bullet;
+mod announcer;
+
 use wasm_bindgen::prelude::*;
 use web_sys::{window, CanvasRenderingContext2d, HtmlImageElement};
 use js_sys::Date;
@@ -14,6 +16,7 @@ use game::GameObject;
 use game::ActiveObject;
 use game::Area;
 use game::GameObjectFactory;
+use crate::announcer::Announcer;
 
 pub fn clone_sprite( image: &HtmlImageElement) -> HtmlImageElement{
     let document = window().unwrap().document().unwrap();
@@ -82,6 +85,14 @@ impl Game {
         Date::now() as i64
     }
 
+    fn start_new_round( &mut self) {
+        let round_text = format!("Round : {}", self.round);
+        self.shapes.push(Box::new(Announcer { time: 0.0, position: Vector { x: self.game_area.width / 2.0 - 100.0, y: self.game_area.height / 2.0, }, text: round_text }));
+        self.round += 1;
+
+        self.shapes.extend( self.objfactory.create_asteroids(self.round * 4));
+    }
+
     fn update(&mut self) {
         let delta_t = (Self::now_ms() - self.t) as f64 / 1000.0;
         
@@ -121,11 +132,7 @@ impl Game {
         self.shapes.iter_mut().for_each(|shape| shape.render(&self.ctx));
         
         if self.shapes.len() <= 2 {
-            web_sys::console::log_1(&JsValue::from_str("You win!"));
-            
-            let asteroids = self.objfactory.create_asteroids( self.round * 4);
-            self.shapes.extend(asteroids);
-            self.round += 1;
+            self.start_new_round();
         }
 
         Ok(())

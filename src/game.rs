@@ -14,6 +14,7 @@ pub enum GameObjectType {
     Rocket,
     Explosion,
     Bullet,
+    Announcer
 }
 
 pub trait GameObject : Any {
