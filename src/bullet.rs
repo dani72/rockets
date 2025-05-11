@@ -1,17 +1,20 @@
 use web_sys::CanvasRenderingContext2d;
+use crate::game::ActiveObject;
 use crate::vmath::Vector;
 use crate::game::GameObject;
 use crate::game::GameObjectType;
 use crate::game::Area;
+use crate::rocket::Rocket;
 use std::any::Any;
 use crate::game::GameObjectFactory;
-use wasm_bindgen::JsValue;
+
 
 pub struct Bullet {
     pub expired: bool,
     pub start_position: Vector,
     pub position: Vector,
     pub speed: Vector,
+    pub rocket: *mut Rocket,
  }
 
 impl GameObject for Bullet {
@@ -60,6 +63,11 @@ impl GameObject for Bullet {
 
         if objtype == GameObjectType::Asteroid {
             self.expire();
+
+            unsafe {
+                (*self.rocket).score += 100;
+            }
+
             return vec![objfactory.create_explosion(self.position.clone())];
         }
 

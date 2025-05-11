@@ -8,6 +8,8 @@ use crate::game::GameObjectType;
 use crate::bullet::Bullet;
 use std::any::Any;
 use crate::game::GameObjectFactory;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 pub struct Rocket {
     pub score: i32,
@@ -58,7 +60,8 @@ impl ActiveObject for Rocket {
                 expired: false,
                 start_position: start,
                 position: start,
-                speed: tempo
+                speed: tempo,
+                rocket: self as *mut Self,
             };
 
             Some(Box::new(bullet))
