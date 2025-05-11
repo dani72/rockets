@@ -31,6 +31,7 @@ pub fn start() {
 
 #[wasm_bindgen]
 pub struct Game {
+    round: i32,
     game_area: Area,
     ctx: CanvasRenderingContext2d,
     t: i64,
@@ -68,10 +69,8 @@ impl Game {
         shapes.push( objfactory.create_rocket( Vector { x: 480.0, y: 100.0 }, Vector { x: game_width - 200.0, y: 50.0 }));
 
         Game {
-            game_area: Area {
-                width: game_width,
-                height: game_height,
-            },
+            round: 1,
+            game_area: Area { width: game_width, height: game_height },
             ctx: rendering_context,
             t: Self::now_ms(),
             objfactory,
@@ -124,8 +123,9 @@ impl Game {
         if self.shapes.len() <= 2 {
             web_sys::console::log_1(&JsValue::from_str("You win!"));
             
-            let asteroids = self.objfactory.create_asteroids(20);
+            let asteroids = self.objfactory.create_asteroids( self.round * 4);
             self.shapes.extend(asteroids);
+            self.round += 1;
         }
 
         Ok(())
