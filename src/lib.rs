@@ -6,6 +6,7 @@ mod myrand;
 mod explosion;
 mod bullet;
 mod announcer;
+mod countdown;
 
 use wasm_bindgen::prelude::*;
 use web_sys::{window, CanvasRenderingContext2d, HtmlImageElement};
@@ -17,6 +18,7 @@ use game::ActiveObject;
 use game::Area;
 use game::GameObjectFactory;
 use crate::announcer::Announcer;
+use crate::countdown::Countdown;
 
 pub fn clone_sprite( image: &HtmlImageElement) -> HtmlImageElement{
     let document = window().unwrap().document().unwrap();
@@ -124,6 +126,7 @@ impl Game {
     fn start_new_round( &mut self) {
         let round_text = format!("Round : {}", self.round);
         self.shapes.push(Box::new(Announcer { time: 0.0, position: Vector { x: self.game_area.width / 2.0 - 100.0, y: self.game_area.height / 2.0, }, text: round_text }));
+        self.shapes.push( Box::new( Countdown { time: 0.0, position: Vector { x: self.game_area.width / 2.0 - 100.0, y: self.game_area.height / 2.0 + 70.0 }, count: 3, text: "3".to_string() }));
         self.shapes.extend( self.objfactory.create_asteroids(self.round * 2, self.game_area, self.round as f64 * 50.0));
         self.round += 1;
     }
