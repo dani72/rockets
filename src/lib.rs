@@ -37,7 +37,7 @@ pub struct Game {
     round: i32,
     game_area: Area,
     ctx: CanvasRenderingContext2d,
-    t: i64,
+    time: i64,
     objfactory: GameObjectFactory,
     shapes: Vec<Box<dyn GameObject>>,
 }
@@ -56,7 +56,7 @@ impl Game {
         explosion_sprite: HtmlImageElement,
         rendering_context: CanvasRenderingContext2d,
     ) -> Game {
-        let objfactory = GameObjectFactory {
+        let object_factory = GameObjectFactory {
             asteroid_small_image: ass,
             asteroid_medium_image: ams,
             asteroid_large_image: als,
@@ -66,18 +66,18 @@ impl Game {
         };
         
        
-        let mut shapes: Vec<Box<dyn GameObject>> = vec![];
+        let mut objects: Vec<Box<dyn GameObject>> = vec![];
 
-        shapes.push( objfactory.create_rocket( Vector { x: 300.0, y: 100.0 }, Vector { x: 50.0, y: 50.0 }));
-        shapes.push( objfactory.create_rocket( Vector { x: 480.0, y: 100.0 }, Vector { x: game_width - 200.0, y: 50.0 }));
+        objects.push( object_factory.create_rocket( Vector { x: game_width / 3.0, y: 200.0 }, Vector { x: 50.0, y: 50.0 }));
+        objects.push( object_factory.create_rocket( Vector { x: game_width / 3.0 * 2.0, y: 200.0 }, Vector { x: game_width - 200.0, y: 50.0 }));
 
         Game {
             round: 1,
             game_area: Area { width: game_width, height: game_height },
             ctx: rendering_context,
-            t: Self::now_ms(),
-            objfactory,
-            shapes
+            time: Self::now_ms(),
+            objfactory: object_factory,
+            shapes: objects
         }
     }
 
@@ -85,19 +85,56 @@ impl Game {
         Date::now() as i64
     }
 
+    pub fn animate( &mut self)  -> Result<(), JsValue> {
+        self.update_game_objects();
+        self.check_collisions();
+        self.render();
+
+        return Ok(())
+    }
+
+    pub fn update_rocket( &mut self, index: usize, thrust: f64, rotate: f64, fire: bool, shield: bool) {
+        if index > 1 {
+            return;
+        }
+
+        if let Some(rocket) = self.shapes[index].as_any_mut().downcast_mut::<Rocket>() {
+            let now = Self::now_ms();
+            
+            rocket.thrust( thrust);
+            rocket.rotate( rotate);
+            rocket.shield( shield);
+
+            if fire {
+                if let Some(bullet) = rocket.fire(now) {
+                    self.shapes.push(bullet);
+                }
+            }
+        }
+    }
+
+    fn clean_shapes( &mut self) {
+        self.shapes.retain( |x| !x.is_expired());
+
+        if self.shapes.len() <= 2 {
+            self.start_new_round();
+        }
+    }
+
     fn start_new_round( &mut self) {
         let round_text = format!("Round : {}", self.round);
         self.shapes.push(Box::new(Announcer { time: 0.0, position: Vector { x: self.game_area.width / 2.0 - 100.0, y: self.game_area.height / 2.0, }, text: round_text }));
-        self.shapes.extend( self.objfactory.create_asteroids(self.round * 2, self.game_area, self.round as f64 * 30.0));
+        self.shapes.extend( self.objfactory.create_asteroids(self.round * 2, self.game_area, self.round as f64 * 50.0));
         self.round += 1;
     }
 
-    fn update(&mut self) {
-        let delta_t = (Self::now_ms() - self.t) as f64 / 1000.0;
+    fn update_game_objects(&mut self) {
+        let delta_t = (Self::now_ms() - self.time) as f64 / 1000.0;
         
         self.shapes.iter_mut().for_each(|shape| shape.move_t( delta_t, self.game_area));
+        self.time = Self::now_ms();
 
-        self.t = Self::now_ms();
+        self.clean_shapes();
     }
 
     fn check_collisions(&mut self) {
@@ -121,35 +158,8 @@ impl Game {
         }
     }
 
-    pub fn render(&mut self) -> Result<(), JsValue> {
-        self.update();
-        self.check_collisions();
-        
+    fn render(&mut self) {
         self.ctx.clear_rect(0.0, 0.0, self.game_area.width, self.game_area.height);
-
-        self.shapes.retain( |x| !x.is_expired());
         self.shapes.iter_mut().for_each(|shape| shape.render(&self.ctx));
-        
-        if self.shapes.len() <= 2 {
-            self.start_new_round();
-        }
-
-        Ok(())
-    }
-
-    pub fn update_rocket( &mut self, index: usize, thrust: f64, rotate: f64, fire: bool, shield: bool) {
-        if let Some(rocket) = self.shapes[index].as_any_mut().downcast_mut::<Rocket>() {
-            let now = Self::now_ms();
-            
-            rocket.thrust( thrust);
-            rocket.rotate( rotate);
-            rocket.shield( shield);
-
-            if fire {
-                if let Some(bullet) = rocket.fire(now) {
-                    self.shapes.push(bullet);
-                }
-            }
-        }
     }
 }

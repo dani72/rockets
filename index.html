@@ -69,7 +69,7 @@
 
                 function animationLoop() {
                     try {
-                        game.render();
+                        game.animate();
 
                         const gamepads = navigator.getGamepads();
 
@@ -88,6 +88,12 @@
                 }
 
                 animationLoop();
+
+                window.addEventListener("keydown", (e) => {
+                    if (e.key === "r" || e.key === "R") {
+                        game.reset();
+                    }
+                });
             } catch (error) {
                 console.error("Failed to initialize:", error);
             }
