@@ -6,7 +6,8 @@ use crate::game::Area;
 use crate::rocket::Rocket;
 use std::any::Any;
 use crate::game::GameObjectFactory;
-
+use std::rc::Rc;
+use std::cell::RefCell;
 
 pub struct Bullet {
     pub expired: bool,
@@ -46,7 +47,7 @@ impl GameObject for Bullet {
         self.position = self.position.add( &self.speed.scale(delta_t));
     }
 
-    fn render(&mut self, ctx: &CanvasRenderingContext2d) {
+    fn render(&self, ctx: &CanvasRenderingContext2d) {
         ctx.begin_path();
         ctx.arc( self.position.x, self.position.y, 3.0, 0.0, std::f64::consts::PI * 2.0).unwrap();
         ctx.set_fill_style_str( "red");
@@ -58,7 +59,7 @@ impl GameObject for Bullet {
         return 3.0;
     }
 
-    fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
+    fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Rc<RefCell<dyn GameObject>>> {
 
         if objtype == GameObjectType::Asteroid  || objtype == GameObjectType::Rocket {
             self.expire();

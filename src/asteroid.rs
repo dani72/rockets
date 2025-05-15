@@ -6,6 +6,8 @@ use crate::game::Area;
 use crate::game::GameObjectFactory;
 use crate::myrand::random_number;
 use std::any::Any;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 #[derive(PartialEq, Eq)]
 pub enum AsteroidSize {
@@ -74,7 +76,7 @@ impl GameObject for Asteroid {
         }
     }
 
-    fn render(&mut self, ctx: &CanvasRenderingContext2d) {
+    fn render(&self, ctx: &CanvasRenderingContext2d) {
         ctx.save();
         ctx.translate(self.position.x, self.position.y).unwrap();          // Move to sprite position
         ctx.rotate( self.rotation).unwrap();        // Rotate around that point
@@ -92,7 +94,7 @@ impl GameObject for Asteroid {
         return self.radius;
     }
 
-    fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
+    fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Rc<RefCell<dyn GameObject>>> {
         if objtype == GameObjectType::Bullet || objtype == GameObjectType::Rocket {
             let mut result = Vec::new();
 

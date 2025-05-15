@@ -8,6 +8,8 @@ use crate::game::GameObjectType;
 use crate::bullet::Bullet;
 use std::any::Any;
 use crate::game::GameObjectFactory;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 pub struct Rocket {
     pub score: i32,
@@ -52,7 +54,7 @@ impl ActiveObject for Rocket {
         self.update_acc();
     }
 
-    fn fire( &mut self, time: i64) -> Option<Box<dyn GameObject>> {
+    fn fire( &mut self, time: i64) -> Option<Rc<RefCell<dyn GameObject>>> {
         if self.last_shot == 0 || (time - self.last_shot) > 100 {
             self.last_shot = time;
 
@@ -68,7 +70,7 @@ impl ActiveObject for Rocket {
                 rocket: self as *mut Self,
             };
 
-            Some(Box::new(bullet))
+            Some( Rc::new( RefCell::new( bullet)))
         }
         else {
             None
@@ -144,7 +146,7 @@ impl GameObject for Rocket {
         }
     }
 
-    fn render(&mut self, ctx: &CanvasRenderingContext2d) {
+    fn render(&self, ctx: &CanvasRenderingContext2d) {
         
         let sprite = if self.thrust > 0.0 { &self.sprite_on } else { &self.sprite_off };
 
@@ -184,7 +186,7 @@ impl GameObject for Rocket {
         20.0
     }
 
-    fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
+    fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Rc<RefCell<dyn GameObject>>> {
         if objtype == GameObjectType::Asteroid {
             if !self.is_shield_active() {
                 self.damage += 100;

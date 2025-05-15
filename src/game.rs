@@ -8,6 +8,9 @@ use crate::asteroid::AsteroidSize;
 use crate::explosion::Explosion;
 use crate::rocket::Rocket;
 use crate::vmath::ZERO;
+use std::rc::Rc;
+use std::cell::RefCell;
+use std::cell::Ref;
 
 #[derive(PartialEq, Eq)]
 pub enum GameObjectType {
@@ -25,8 +28,8 @@ pub trait GameObject : Any {
     fn get_type( &self) -> GameObjectType;
 
     fn move_t(&mut self, delta_t: f64, game_area: Area);
-    fn render(&mut self, ctx: &CanvasRenderingContext2d);
-    fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>>;
+    fn render(&self, ctx: &CanvasRenderingContext2d);
+    fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Rc<RefCell<dyn GameObject>>>;
 
     fn current_position( &self) -> Vector;
     fn radius( &self) -> f64;
@@ -41,7 +44,7 @@ pub trait GameObject : Any {
 pub trait ActiveObject : GameObject {
     fn rotate( &mut self, value: f64);
     fn thrust( &mut self, value: f64);
-    fn fire( &mut self, time: i64) -> Option<Box<dyn GameObject>>;
+    fn fire( &mut self, time: i64) -> Option<Rc<RefCell<dyn GameObject>>>;
     fn shield( &mut self, shield: bool);
 }
 
@@ -61,8 +64,8 @@ pub struct GameObjectFactory {
 }
 
 impl GameObjectFactory {
-    pub fn create_asteroid_small( &self, position: Vector, speed: Vector) -> Box<dyn GameObject> {
-        Box::new(Asteroid {
+    pub fn create_asteroid_small( &self, position: Vector, speed: Vector) -> Rc<RefCell<dyn GameObject>> {
+        Rc::new( RefCell::new( Asteroid {
             size: AsteroidSize::Small,
             expired: false,
             position: position,
@@ -71,11 +74,11 @@ impl GameObjectFactory {
             acc: Vector::new(0.0, 0.0),
             radius: 10.0,
             image: self.asteroid_small_image.clone(),
-        })
+        }))
     }
 
-    pub fn create_asteroid_medium( &self, position: Vector, speed: Vector) -> Box<dyn GameObject> {
-        Box::new(Asteroid {
+    pub fn create_asteroid_medium( &self, position: Vector, speed: Vector) -> Rc<RefCell<dyn GameObject>> {
+        Rc::new( RefCell::new( Asteroid {
             size: AsteroidSize::Medium,
             expired: false,
             position: position,
@@ -84,11 +87,11 @@ impl GameObjectFactory {
             acc: Vector::new(0.0, 0.0),
             radius: 20.0,
             image: self.asteroid_medium_image.clone(),
-        })
+        }))
     }
 
-    pub fn create_asteroid_large( &self, position: Vector, speed: Vector) -> Box<dyn GameObject> {
-        Box::new(Asteroid {
+    pub fn create_asteroid_large( &self, position: Vector, speed: Vector) -> Rc<RefCell<dyn GameObject>> {
+        Rc::new( RefCell::new( Asteroid {
             size: AsteroidSize::Large,
             expired: false,
             position: position,
@@ -97,18 +100,18 @@ impl GameObjectFactory {
             acc: Vector::new(0.0, 0.0),
             radius: 30.0,
             image: self.asteroid_large_image.clone(),
-        })
+        }))
     }
 
-    pub fn create_explosion( &self, position: Vector) -> Box<dyn GameObject> {
-        Box::new(Explosion {
+    pub fn create_explosion( &self, position: Vector) -> Rc<RefCell<dyn GameObject>> {
+        Rc::new( RefCell::new( Explosion {
             time: 0.0f64,
             position: position,
             image: self.explosion_image.clone(),
-        })
+        }))
     }
 
-    pub fn create_asteroids( &self, nof : i32, area: Area, max_speed: f64) -> Vec<Box<dyn GameObject>> {
+    pub fn create_asteroids( &self, nof : i32, area: Area, max_speed: f64) -> Vec<Rc<RefCell<dyn GameObject>>> {
         let mut i = 0;
         let mut asteroids = vec![];
 
@@ -122,8 +125,8 @@ impl GameObjectFactory {
         return asteroids;
     }
 
-    pub fn create_rocket( &self, pos: Vector, score_position: Vector) -> Box<dyn GameObject> {
-        Box::new( Rocket {
+    pub fn create_rocket( &self, pos: Vector, score_position: Vector) -> Rc<RefCell<dyn GameObject>> {
+        Rc::new( RefCell::new( Rocket {
             score: 0,
             damage: 0,
             score_pos: score_position,
@@ -137,6 +140,6 @@ impl GameObjectFactory {
             last_shot: 0,
             shield_on: false,
             shield_time: 0.0,
-        })
+        }))
     }
 }

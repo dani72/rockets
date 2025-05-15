@@ -5,6 +5,8 @@ use crate::game::GameObjectType;
 use crate::game::Area;
 use std::any::Any;
 use crate::game::GameObjectFactory;
+use std::rc::Rc;
+use std::cell::RefCell;
 
 pub struct Countdown {
     pub time: f64,
@@ -54,7 +56,7 @@ impl GameObject for Countdown {
         }
     }
 
-    fn render(&mut self, ctx: &CanvasRenderingContext2d) {
+    fn render(&self, ctx: &CanvasRenderingContext2d) {
         ctx.set_font("48px sans-serif");
         ctx.set_fill_style(&wasm_bindgen::JsValue::from_str("black"));
         ctx.set_text_align("left");
@@ -68,7 +70,7 @@ impl GameObject for Countdown {
         return 10.0;
     }
 
-    fn collision_with(&mut self, _objtype: GameObjectType, _objfactory: &GameObjectFactory) -> Vec<Box<dyn GameObject>> {
+    fn collision_with(&mut self, _objtype: GameObjectType, _objfactory: &GameObjectFactory) -> Vec<Rc<RefCell<dyn GameObject>>> {
         vec![]
     }
 }
