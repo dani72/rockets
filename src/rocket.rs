@@ -1,4 +1,4 @@
-use web_sys::{ CanvasRenderingContext2d, HtmlImageElement, console};
+use web_sys::{ CanvasRenderingContext2d, HtmlImageElement};
 use crate::vmath::Vector;
 use std::f64::consts::FRAC_PI_2;
 use crate::game::GameObject;
@@ -9,6 +9,7 @@ use std::any::Any;
 use crate::game::GameObjectFactory;
 use std::rc::Rc;
 use std::cell::RefCell;
+use wasm_bindgen::JsValue;
 
 pub struct Rocket {
     pub score: i32,
@@ -24,33 +25,17 @@ pub struct Rocket {
     pub last_shot: i64,
     pub shield_on: bool,
     pub shield_time: f64,
+    pub bullet_color: String
  }
 
 impl Rocket {
-    fn update_acc( &mut self) {
-        self.acc = Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale(self.thrust); //.add( &GRAVITY);
+    pub fn update( &mut self, thrust: f64, rotate: f64, shield: bool) {
+        self.thrust( thrust);
+        self.rotate( rotate);
+        self.shield( shield);
     }
-
-    fn is_shield_active( &self) -> bool {
-        return self.shield_on && (self.shield_time > 0.0) && (self.shield_time < 2.0);
-    }
-
-    pub fn thrust( &mut self, value : f64) {
-        if value >= 0.0 && value <= 1.0 {
-            self.thrust = 100.0 * value;
-        }
-
-        self.update_acc();
-    }
-
-
-    pub fn rotate( &mut self, value : f64) {
-        self.rotation += value * 0.1;
-
-        self.update_acc();
-    }
-
-    pub fn fire( &mut self, time: i64) -> Option<Rc<RefCell<dyn GameObject>>> {
+        
+    pub fn fire( &mut self, time: i64) -> Vec<Rc<RefCell<dyn GameObject>>> {
         if self.last_shot == 0 || (time - self.last_shot) > 100 {
             self.last_shot = time;
 
@@ -63,17 +48,32 @@ impl Rocket {
                 start_position: start,
                 position: start,
                 speed: tempo,
+                color: self.bullet_color.to_string(),
                 rocket: self as *mut Self,
             };
 
-            Some( Rc::new( RefCell::new( bullet)))
+            return vec![ Rc::new( RefCell::new( bullet))];
         }
         else {
-            None
+            return vec![];
         }
     }   
 
-    pub fn shield( &mut self, shield: bool) {
+    fn thrust( &mut self, value : f64) {
+        if value >= 0.0 && value <= 1.0 {
+            self.thrust = 100.0 * value;
+        }
+
+        self.update_acc();
+    }
+
+    fn rotate( &mut self, value : f64) {
+        self.rotation += value * 0.1;
+
+        self.update_acc();
+    }
+
+    fn shield( &mut self, shield: bool) {
         if !self.shield_on && shield {
             self.shield_on = true;
             web_sys::console::log_1(&format!("Activate shield: {}/{}", self.shield_on, self.shield_time).into());
@@ -82,6 +82,14 @@ impl Rocket {
             self.shield_on = false;
             web_sys::console::log_1(&format!("Deactivate shield: {}/{}", self.shield_on, self.shield_time).into());
         }
+    }
+
+    fn update_acc( &mut self) {
+        self.acc = Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale(self.thrust); //.add( &GRAVITY);
+    }
+
+    fn is_shield_active( &self) -> bool {
+        return self.shield_on && (self.shield_time > 0.0) && (self.shield_time < 2.0);
     }
 }
 
@@ -161,7 +169,7 @@ impl GameObject for Rocket {
         if self.is_shield_active() {
             ctx.begin_path();
             ctx.arc(0.0, 0.0, self.radius() + 10.0, 0.0, std::f64::consts::PI * 2.0).unwrap();
-            ctx.set_stroke_style(&wasm_bindgen::JsValue::from_str("rgba(0, 200, 255, 0.5)"));
+            ctx.set_stroke_style_str( "rgba(0, 200, 255, 0.5)");
             ctx.set_line_width(3.0);
             ctx.stroke();
         }
@@ -170,7 +178,7 @@ impl GameObject for Rocket {
 
         // Draw the score at a fixed position
         ctx.set_font("16px sans-serif");
-        ctx.set_fill_style(&wasm_bindgen::JsValue::from_str("black"));
+        ctx.set_fill_style_str( "black");
         let score_text = format!("Score: {}", self.score);
         ctx.fill_text(&score_text, self.score_pos.x, self.score_pos.y).unwrap();
         let damage_text = format!("Damage: {}", self.damage);

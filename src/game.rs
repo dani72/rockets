@@ -117,7 +117,7 @@ impl GameObjectFactory {
         return asteroids;
     }
 
-    pub fn create_rocket( &self, pos: Vector, score_position: Vector) -> Rc<RefCell<dyn GameObject>> {
+    pub fn create_rocket( &self, pos: Vector, score_position: Vector, color: String) -> Rc<RefCell<dyn GameObject>> {
         Rc::new( RefCell::new( Rocket {
             score: 0,
             damage: 0,
@@ -132,6 +132,7 @@ impl GameObjectFactory {
             last_shot: 0,
             shield_on: false,
             shield_time: 0.0,
+            bullet_color: color
         }))
     }
 }

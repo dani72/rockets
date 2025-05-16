@@ -93,10 +93,10 @@ impl Game {
         return Ok(())
     }
 
-    pub fn create_rocket( &mut self) -> usize {
+    pub fn create_rocket( &mut self, color: String) -> usize {
         let position = Vector { x: (self.game_area.width / 3.0) + self.number_of_rockets as f64 * 50.0, y: 200.0 };
-        let score_position = Vector { x: 50.0 + self.number_of_rockets as f64 * 50.0, y: 50.0 };
-        let rocket = self.objfactory.create_rocket( position, score_position);
+        let score_position = Vector { x: 50.0 + self.number_of_rockets as f64 * 150.0, y: 50.0 };
+        let rocket = self.objfactory.create_rocket( position, score_position, color);
 
         self.shapes.insert( self.number_of_rockets, rocket);
         self.number_of_rockets += 1;
@@ -111,14 +111,10 @@ impl Game {
             let now = Self::now_ms();
             
             if let Some(rocket) = obj.as_any_mut().downcast_mut::<Rocket>() {
-                rocket.thrust(thrust);
-                rocket.rotate(rotate);
-                rocket.shield(shield);
+                rocket.update( thrust, rotate, shield);
 
                 if fire {
-                    if let Some(bullet) = rocket.fire(now) {
-                        bullets.push(bullet);
-                    }
+                    bullets.extend( rocket.fire( now));
                 }
             }
         }
@@ -138,15 +134,16 @@ impl Game {
         let round_text = format!("Round : {}", self.round);
         self.shapes.push( Rc::new( RefCell::new( Announcer { time: 0.0, position: Vector { x: self.game_area.width / 2.0 - 100.0, y: self.game_area.height / 2.0, }, text: round_text })));
         self.shapes.push( Rc::new( RefCell::new( Countdown { time: 0.0, position: Vector { x: self.game_area.width / 2.0 - 100.0, y: self.game_area.height / 2.0 + 70.0 }, count: 3, text: "3".to_string() })));
-        self.shapes.extend( self.objfactory.create_asteroids(self.round * 2, self.game_area, self.round as f64 * 50.0));
+        self.shapes.extend( self.objfactory.create_asteroids( self.round * 2, self.game_area, self.round as f64 * 50.0));
         self.round += 1;
     }
 
     fn update_game_objects( &mut self) {
-        let delta_t = (Self::now_ms() - self.time) as f64 / 1000.0;
+        let now = Self::now_ms();
+        let delta_t = (now - self.time) as f64 / 1000.0;
         
         self.shapes.iter_mut().for_each(|shape| shape.borrow_mut().move_t( delta_t, self.game_area));
-        self.time = Self::now_ms();
+        self.time = now;
 
         self.clean_shapes();
     }
@@ -162,12 +159,11 @@ impl Game {
                 let obj2 = &right[0];
 
                 if obj1.borrow().distance( &*obj2.borrow()) < (obj1.borrow().radius() + obj2.borrow().radius()) {
-                    let new_from_obj1 = obj1.borrow_mut().collision_with(obj2.borrow().get_type(), &self.objfactory);
-                    let new_from_obj2 = obj2.borrow_mut().collision_with(obj1.borrow().get_type(), &self.objfactory);
+                    let new_from_obj1 = obj1.borrow_mut().collision_with( obj2.borrow().get_type(), &self.objfactory);
+                    let new_from_obj2 = obj2.borrow_mut().collision_with( obj1.borrow().get_type(), &self.objfactory);
 
-                    for obj in new_from_obj1.into_iter().chain(new_from_obj2) {
-                        objects.push(obj);
-                    }
+                    objects.extend( new_from_obj1);
+                    objects.extend( new_from_obj2);
                 }
             }
         }

@@ -14,6 +14,7 @@ pub struct Bullet {
     pub start_position: Vector,
     pub position: Vector,
     pub speed: Vector,
+    pub color: String,
     pub rocket: *mut Rocket,
  }
 
@@ -50,7 +51,7 @@ impl GameObject for Bullet {
     fn render(&self, ctx: &CanvasRenderingContext2d) {
         ctx.begin_path();
         ctx.arc( self.position.x, self.position.y, 3.0, 0.0, std::f64::consts::PI * 2.0).unwrap();
-        ctx.set_fill_style_str( "red");
+        ctx.set_fill_style_str( &self.color);
     
         ctx.fill();
     }
