@@ -22,20 +22,19 @@ pub enum GameObjectType {
 }
 
 pub trait GameObject : Any {
-    fn as_any(&self) -> &dyn Any;
-    fn as_any_mut(&mut self) -> &mut dyn Any;
+    fn as_any( &self) -> &dyn Any;
+    fn as_any_mut( &mut self) -> &mut dyn Any;
 
     fn get_type( &self) -> GameObjectType;
-
-    fn move_t(&mut self, delta_t: f64, game_area: Area);
-    fn render(&self, ctx: &CanvasRenderingContext2d);
-    fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Rc<RefCell<dyn GameObject>>>;
-
     fn current_position( &self) -> Vector;
     fn radius( &self) -> f64;
 
     fn is_expired( &self) -> bool;
     fn expire( &mut self);
+
+    fn move_t( &mut self, delta_t: f64, game_area: Area);
+    fn render( &self, ctx: &CanvasRenderingContext2d);
+    fn collision_with( &mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Rc<RefCell<dyn GameObject>>>;
 
     fn distance( &self, other: &dyn GameObject) -> f64 {
         self.current_position().distance( &other.current_position())
