@@ -8,6 +8,7 @@ mod bullet;
 mod announcer;
 mod countdown;
 
+use game::GameObjectType;
 use wasm_bindgen::prelude::*;
 use web_sys::{window, CanvasRenderingContext2d, HtmlImageElement};
 use js_sys::Date;
@@ -105,17 +106,14 @@ impl Game {
     }
 
     pub fn update_rocket( &mut self, index: usize, thrust: f64, rotate: f64, fire: bool, shield: bool) {
+        let now = Self::now_ms();
         let mut bullets: Vec<Rc<RefCell<dyn GameObject>>> = vec![];
 
-        if let Ok( mut obj) = self.shapes[index].try_borrow_mut() {
-            let now = Self::now_ms();
-            
-            if let Some(rocket) = obj.as_any_mut().downcast_mut::<Rocket>() {
-                rocket.update( thrust, rotate, shield);
+        if let Some( rocket) = self.shapes[index].borrow_mut().as_any_mut().downcast_mut::<Rocket>() {
+            rocket.update( thrust, rotate, shield);
 
-                if fire {
-                    bullets.extend( rocket.fire( now));
-                }
+            if fire {
+                bullets.extend( rocket.fire( now));
             }
         }
 
@@ -125,7 +123,8 @@ impl Game {
     fn clean_shapes( &mut self) {
         self.shapes.retain( |x| !x.borrow_mut().is_expired());
 
-        if self.shapes.len() <= 2 {
+        let nof_asteroids = self.shapes.iter().filter(|obj| obj.borrow().get_type() == GameObjectType::Asteroid).count();
+        if nof_asteroids == 0 {
             self.start_new_round();
         }
     }
