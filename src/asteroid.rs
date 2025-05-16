@@ -31,11 +31,11 @@ impl Asteroid {
 }
 
 impl GameObject for Asteroid {
-    fn as_any(&self) -> &dyn Any {
+    fn as_any( &self) -> &dyn Any {
         self
     }
 
-    fn as_any_mut(&mut self) -> &mut dyn Any {
+    fn as_any_mut( &mut self) -> &mut dyn Any {
         self
     }
 
@@ -43,7 +43,7 @@ impl GameObject for Asteroid {
         return GameObjectType::Asteroid;
     }
 
-    fn current_position(&self) -> Vector {
+    fn current_position( &self) -> Vector {
         self.position
     }
 
@@ -55,7 +55,7 @@ impl GameObject for Asteroid {
         return self.expired;
     }
 
-    fn move_t(&mut self, delta_t: f64, game_area: Area) {
+    fn move_t( &mut self, delta_t: f64, game_area: Area) {
         self.speed = self.speed.add( &self.acc.scale(delta_t));
         self.position = self.position.add( &self.speed.scale(delta_t));
 
@@ -76,7 +76,7 @@ impl GameObject for Asteroid {
         }
     }
 
-    fn render(&self, ctx: &CanvasRenderingContext2d) {
+    fn render( &self, ctx: &CanvasRenderingContext2d) {
         ctx.save();
         ctx.translate(self.position.x, self.position.y).unwrap();          // Move to sprite position
         ctx.rotate( self.rotation).unwrap();        // Rotate around that point
@@ -94,7 +94,7 @@ impl GameObject for Asteroid {
         return self.radius;
     }
 
-    fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Rc<RefCell<dyn GameObject>>> {
+    fn collision_with( &mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Rc<RefCell<dyn GameObject>>> {
         if objtype == GameObjectType::Bullet || objtype == GameObjectType::Rocket {
             let mut result = Vec::new();
 

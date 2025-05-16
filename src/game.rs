@@ -6,11 +6,10 @@ use std::any::Any;
 use crate::asteroid::Asteroid;
 use crate::asteroid::AsteroidSize;
 use crate::explosion::Explosion;
-use crate::rocket::Rocket;
 use crate::vmath::ZERO;
 use std::rc::Rc;
 use std::cell::RefCell;
-use std::cell::Ref;
+use crate::rocket::Rocket;
 
 #[derive(PartialEq, Eq)]
 pub enum GameObjectType {
@@ -33,18 +32,12 @@ pub trait GameObject : Any {
     fn expire( &mut self);
 
     fn move_t( &mut self, delta_t: f64, game_area: Area);
-    fn render( &self, ctx: &CanvasRenderingContext2d);
     fn collision_with( &mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Rc<RefCell<dyn GameObject>>>;
+    fn render( &self, ctx: &CanvasRenderingContext2d);
 
     fn distance( &self, other: &dyn GameObject) -> f64 {
         self.current_position().distance( &other.current_position())
     }
-}
-pub trait ActiveObject : GameObject {
-    fn rotate( &mut self, value: f64);
-    fn thrust( &mut self, value: f64);
-    fn fire( &mut self, time: i64) -> Option<Rc<RefCell<dyn GameObject>>>;
-    fn shield( &mut self, shield: bool);
 }
 
 #[derive(Clone, Copy)]

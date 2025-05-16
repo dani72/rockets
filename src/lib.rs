@@ -12,9 +12,8 @@ use wasm_bindgen::prelude::*;
 use web_sys::{window, CanvasRenderingContext2d, HtmlImageElement};
 use js_sys::Date;
 use vmath::Vector;
-use rocket::Rocket;
 use game::GameObject;
-use game::ActiveObject;
+use rocket::Rocket;
 use game::Area;
 use game::GameObjectFactory;
 use crate::announcer::Announcer;
@@ -95,9 +94,10 @@ impl Game {
     }
 
     pub fn create_rocket( &mut self) -> usize {
-        let rocket = self.objfactory.create_rocket( Vector { 
-            x: (self.game_area.width / 3.0) + self.number_of_rockets as f64 * 50.0, 
-            y: 200.0 }, Vector { x: ((self.number_of_rockets + 1) as f64 * 150.0), y: 50.0 });
+        let position = Vector { x: (self.game_area.width / 3.0) + self.number_of_rockets as f64 * 50.0, y: 200.0 };
+        let score_position = Vector { x: 50.0 + self.number_of_rockets as f64 * 50.0, y: 50.0 };
+        let rocket = self.objfactory.create_rocket( position, score_position);
+
         self.shapes.insert( self.number_of_rockets, rocket);
         self.number_of_rockets += 1;
 
@@ -105,10 +105,6 @@ impl Game {
     }
 
     pub fn update_rocket( &mut self, index: usize, thrust: f64, rotate: f64, fire: bool, shield: bool) {
-        if index > 1 {
-            return;
-        }
-
         let mut bullets: Vec<Rc<RefCell<dyn GameObject>>> = vec![];
 
         if let Ok( mut obj) = self.shapes[index].try_borrow_mut() {
@@ -146,7 +142,7 @@ impl Game {
         self.round += 1;
     }
 
-    fn update_game_objects(&mut self) {
+    fn update_game_objects( &mut self) {
         let delta_t = (Self::now_ms() - self.time) as f64 / 1000.0;
         
         self.shapes.iter_mut().for_each(|shape| shape.borrow_mut().move_t( delta_t, self.game_area));
@@ -155,15 +151,15 @@ impl Game {
         self.clean_shapes();
     }
 
-    fn check_collisions(&mut self) {
+    fn check_collisions( &mut self) {
         let mut objects : Vec<Rc<RefCell<dyn GameObject>>> = vec![];
 
         let len = self.shapes.len();
         for i in 0..len {
             for j in (i + 1)..len {
                 let (left, right) = self.shapes.split_at_mut(j);
-                let obj1 = &left[i];  // Dereference the Box
-                let obj2 = &right[0]; // Dereference the Box
+                let obj1 = &left[i];
+                let obj2 = &right[0];
 
                 if obj1.borrow().distance( &*obj2.borrow()) < (obj1.borrow().radius() + obj2.borrow().radius()) {
                     let new_from_obj1 = obj1.borrow_mut().collision_with(obj2.borrow().get_type(), &self.objfactory);
@@ -179,7 +175,7 @@ impl Game {
         self.shapes.extend(objects);
     }
 
-    fn render(&mut self) {
+    fn render( &mut self) {
         self.ctx.clear_rect(0.0, 0.0, self.game_area.width, self.game_area.height);
         self.shapes.iter_mut().for_each(|shape| shape.borrow().render(&self.ctx));
     }

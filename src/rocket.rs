@@ -1,7 +1,6 @@
 use web_sys::{ CanvasRenderingContext2d, HtmlImageElement, console};
 use crate::vmath::Vector;
 use std::f64::consts::FRAC_PI_2;
-use crate::game::ActiveObject;
 use crate::game::GameObject;
 use crate::game::Area;
 use crate::game::GameObjectType;
@@ -35,11 +34,8 @@ impl Rocket {
     fn is_shield_active( &self) -> bool {
         return self.shield_on && (self.shield_time > 0.0) && (self.shield_time < 2.0);
     }
-}
 
-impl ActiveObject for Rocket {
-
-    fn thrust( &mut self, value : f64) {
+    pub fn thrust( &mut self, value : f64) {
         if value >= 0.0 && value <= 1.0 {
             self.thrust = 100.0 * value;
         }
@@ -48,13 +44,13 @@ impl ActiveObject for Rocket {
     }
 
 
-    fn rotate( &mut self, value : f64) {
+    pub fn rotate( &mut self, value : f64) {
         self.rotation += value * 0.1;
 
         self.update_acc();
     }
 
-    fn fire( &mut self, time: i64) -> Option<Rc<RefCell<dyn GameObject>>> {
+    pub fn fire( &mut self, time: i64) -> Option<Rc<RefCell<dyn GameObject>>> {
         if self.last_shot == 0 || (time - self.last_shot) > 100 {
             self.last_shot = time;
 
@@ -77,7 +73,7 @@ impl ActiveObject for Rocket {
         }
     }   
 
-    fn shield( &mut self, shield: bool) {
+    pub fn shield( &mut self, shield: bool) {
         if !self.shield_on && shield {
             self.shield_on = true;
             web_sys::console::log_1(&format!("Activate shield: {}/{}", self.shield_on, self.shield_time).into());
