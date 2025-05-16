@@ -45,6 +45,7 @@ pub struct Game {
     time: i64,
     objfactory: GameObjectFactory,
     shapes: Vec<Rc<RefCell<dyn GameObject>>>,
+    number_of_rockets: usize
 }
 
 #[wasm_bindgen]
@@ -70,19 +71,14 @@ impl Game {
             rocket_thrust_off_image: rocket_thrust_off
         };
         
-       
-        let mut objects: Vec<Rc<RefCell<dyn GameObject>>> = vec![];
-
-        objects.push( object_factory.create_rocket( Vector { x: game_width / 3.0, y: 200.0 }, Vector { x: 50.0, y: 50.0 }));
-        objects.push( object_factory.create_rocket( Vector { x: game_width / 3.0 * 2.0, y: 200.0 }, Vector { x: game_width - 200.0, y: 50.0 }));
-
         Game {
             round: 1,
             game_area: Area { width: game_width, height: game_height },
             ctx: rendering_context,
             time: Self::now_ms(),
             objfactory: object_factory,
-            shapes: objects
+            shapes: vec![],
+            number_of_rockets: 0
         }
     }
 
@@ -90,12 +86,22 @@ impl Game {
         Date::now() as i64
     }
 
-    pub fn animate( &mut self)  -> Result<(), JsValue> {
+    pub fn animate_frame( &mut self)  -> Result<(), JsValue> {
         self.update_game_objects();
         self.check_collisions();
         self.render();
 
         return Ok(())
+    }
+
+    pub fn create_rocket( &mut self) -> usize {
+        let rocket = self.objfactory.create_rocket( Vector { 
+            x: (self.game_area.width / 3.0) + self.number_of_rockets as f64 * 50.0, 
+            y: 200.0 }, Vector { x: ((self.number_of_rockets + 1) as f64 * 150.0), y: 50.0 });
+        self.shapes.insert( self.number_of_rockets, rocket);
+        self.number_of_rockets += 1;
+
+        return self.number_of_rockets - 1;
     }
 
     pub fn update_rocket( &mut self, index: usize, thrust: f64, rotate: f64, fire: bool, shield: bool) {

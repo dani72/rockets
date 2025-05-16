@@ -23,29 +23,11 @@
                 await init();
 
                 const playerControllers = {
-                    rocket1 : null,
-                    rocket2 : null
+                    gamepad_rocket1 : null,
+                    index_rocket1 : null,
+                    gamepad_rocket2 : null,
+                    index_rocket2 : null,
                 }
-
-                window.addEventListener("gamepadconnected", (e) => {
-                    console.log("Gamepad connected:", e.gamepad);
-
-                    if( e.gamepad.id.startsWith( "Nimbus (Vendor")) {
-                        console.log("Controller ignored: " + e.gamepad.id);
-                        return;
-                    }
-
-                    const gamepadIndex = e.gamepad.index;
-
-                    if (playerControllers.rocket1 === null) {
-                        playerControllers.rocket1 = gamepadIndex;
-                        console.log("Assigned to rocket1:", gamepadIndex);
-                    } 
-                    else if (playerControllers.rocket2 === null) {
-                        playerControllers.rocket2 = gamepadIndex;
-                        console.log("Assigned to rocket2:", gamepadIndex);
-                    }
-                });
 
                 const rocketThrustOn = await loadImage("./assets/rocket_thrust_on.png");
                 const rocketThrustOff = await loadImage("./assets/rocket_thrust_off.png");
@@ -58,6 +40,28 @@
 
                 const game = new Game( canvas.width, canvas.height, asteroid_small, asteroid_medium, asteroid_big, rocketThrustOn, rocketThrustOff, explosion, ctx);
 
+                window.addEventListener("gamepadconnected", (e) => {
+                    console.log("Gamepad connected:", e.gamepad);
+
+                    if( e.gamepad.id.startsWith( "Nimbus (Vendor")) {
+                        console.log("Controller ignored: " + e.gamepad.id);
+                        return;
+                    }
+
+                    const gamepadIndex = e.gamepad.index;
+
+                    if (playerControllers.gamepad_rocket1 === null) {
+                        playerControllers.gamepad_rocket1 = gamepadIndex;
+                        playerControllers.index_rocket1 = game.create_rocket();
+                        console.log("Assigned to rocket1:", gamepadIndex, " - ", playerControllers.index_rocket1);
+                    } 
+                    else if (playerControllers.gamepad_rocket2 === null) {
+                        playerControllers.gamepad_rocket2 = gamepadIndex;
+                        playerControllers.index_rocket2 = game.create_rocket();
+                        console.log("Assigned to rocket2:", gamepadIndex);
+                    }
+                });
+
                 function updateRocket( gamepad, index) {
                     const rotate = gamepad.axes[0].toFixed(2);
                     const thrust = gamepad.buttons[7].value;
@@ -69,15 +73,15 @@
 
                 function animationLoop() {
                     try {
-                        game.animate();
+                        game.animate_frame();
 
                         const gamepads = navigator.getGamepads();
 
-                        if( playerControllers.rocket1 !== null) {
-                            updateRocket( gamepads[playerControllers.rocket1], 0);
+                        if( playerControllers.gamepad_rocket1 !== null) {
+                            updateRocket( gamepads[playerControllers.gamepad_rocket1], playerControllers.index_rocket1);
                         }
-                        if( playerControllers.rocket2 !== null) {
-                            updateRocket( gamepads[playerControllers.rocket2], 1);
+                        if( playerControllers.gamepad_rocket2 !== null) {
+                            updateRocket( gamepads[playerControllers.gamepad_rocket2], playerControllers.index_rocket2);
                         }
 
                         requestAnimationFrame(animationLoop);
