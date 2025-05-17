@@ -129,10 +129,11 @@ impl GameObjectFactory {
             thrust: 0.0,
             sprite_on: self.rocket_thrust_on_image.clone(),
             sprite_off: self.rocket_thrust_off_image.clone(),
-            last_shot: 0,
+            last_shot: 0.0,
             shield_on: false,
             shield_time: 0.0,
-            bullet_color: color
+            bullet_color: color,
+            burst_time: 0.0,
         }))
     }
 }

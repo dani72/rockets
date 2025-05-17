@@ -43,6 +43,7 @@ pub struct Game {
     game_area: Area,
     ctx: CanvasRenderingContext2d,
     time: i64,
+    fire_time: i64,
     objfactory: GameObjectFactory,
     shapes: Vec<Rc<RefCell<dyn GameObject>>>,
     number_of_rockets: usize
@@ -76,6 +77,7 @@ impl Game {
             game_area: Area { width: game_width, height: game_height },
             ctx: rendering_context,
             time: Self::now_ms(),
+            fire_time: Self::now_ms(),
             objfactory: object_factory,
             shapes: vec![],
             number_of_rockets: 0
@@ -106,15 +108,15 @@ impl Game {
     }
 
     pub fn update_rocket( &mut self, index: usize, thrust: f64, rotate: f64, fire: bool, shield: bool) {
-        let now = Self::now_ms();
         let mut bullets: Vec<Rc<RefCell<dyn GameObject>>> = vec![];
 
         if let Some( rocket) = self.shapes[index].borrow_mut().as_any_mut().downcast_mut::<Rocket>() {
-            rocket.update( thrust, rotate, shield);
+            let now = Self::now_ms();
+            let delta_t = (now - self.fire_time) as f64 / 1000.0;
 
-            if fire {
-                bullets.extend( rocket.fire( now));
-            }
+            bullets.extend( rocket.update( delta_t, thrust, rotate, shield, fire));
+
+            self.fire_time = now;
         }
 
         self.shapes.extend( bullets);

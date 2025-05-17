@@ -9,7 +9,10 @@ use std::any::Any;
 use crate::game::GameObjectFactory;
 use std::rc::Rc;
 use std::cell::RefCell;
-use wasm_bindgen::JsValue;
+
+const MAX_SHIELD_TIME: f64 = 2.0;
+const MAX_SHIELD_STROKE_WIDTH: f64 = 6.0;
+const MAX_BURST_TIME: f64 = 2.5;
 
 pub struct Rocket {
     pub score: i32,
@@ -22,22 +25,44 @@ pub struct Rocket {
     pub thrust: f64,
     pub sprite_on: HtmlImageElement,
     pub sprite_off: HtmlImageElement,
-    pub last_shot: i64,
+    pub last_shot: f64,
     pub shield_on: bool,
     pub shield_time: f64,
-    pub bullet_color: String
+    pub bullet_color: String,
+    pub burst_time : f64
  }
 
 impl Rocket {
-    pub fn update( &mut self, thrust: f64, rotate: f64, shield: bool) {
+    pub fn update( &mut self, delta_t: f64, thrust: f64, rotate: f64, shield: bool, fire: bool) -> Vec<Rc<RefCell<dyn GameObject>>> {
         self.thrust( thrust);
         self.rotate( rotate);
         self.shield( shield);
+
+        if fire {
+            return self.fire_on( delta_t)
+        }
+        else {
+            self.fire_off( delta_t)
+        }
+
+        vec![]
     }
         
-    pub fn fire( &mut self, time: i64) -> Vec<Rc<RefCell<dyn GameObject>>> {
-        if self.last_shot == 0 || (time - self.last_shot) > 100 {
-            self.last_shot = time;
+    pub fn fire_off( &mut self, delta_t: f64) {
+        self.last_shot = 0.0;
+
+        if self.burst_time > 0.0 {
+            self.burst_time -= delta_t;
+        }
+    }
+
+    pub fn fire_on( &mut self, delta_t: f64) -> Vec<Rc<RefCell<dyn GameObject>>> {
+        if self.burst_time < MAX_BURST_TIME {
+            self.burst_time += delta_t;
+        }
+
+        if (self.last_shot == 0.0 || self.last_shot > 0.2) && (self.burst_time < MAX_BURST_TIME) {
+            self.last_shot = 0.01;
 
             let rotvec = Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale( 25.0);
             let tempo = Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale( 250.0).add( &self.speed);
@@ -55,8 +80,11 @@ impl Rocket {
             return vec![ Rc::new( RefCell::new( bullet))];
         }
         else {
-            return vec![];
+            self.last_shot += delta_t;
         }
+
+        vec![]
+
     }   
 
     fn thrust( &mut self, value : f64) {
@@ -89,7 +117,7 @@ impl Rocket {
     }
 
     fn is_shield_active( &self) -> bool {
-        return self.shield_on && (self.shield_time > 0.0) && (self.shield_time < 2.0);
+        return self.shield_on && (self.shield_time > 0.0) && (self.shield_time < MAX_SHIELD_TIME);
     }
 
     fn render_score( &self, ctx: &CanvasRenderingContext2d) {
@@ -99,6 +127,16 @@ impl Rocket {
         ctx.fill_text(&score_text, self.score_pos.x, self.score_pos.y).unwrap();
         let damage_text = format!("Damage: {}", self.damage);
         ctx.fill_text(&damage_text, self.score_pos.x, self.score_pos.y + 20.0).unwrap();
+
+        // Draw burst time remaining bar under score
+        let max_width = 100.0;
+        let bar_width = ((MAX_BURST_TIME - self.burst_time) / MAX_BURST_TIME) * max_width;
+        let bar_height = 5.0;
+        let bar_x = self.score_pos.x;
+        let bar_y = self.score_pos.y + 40.0;
+
+        ctx.set_fill_style_str( "red");
+        ctx.fill_rect(bar_x, bar_y, bar_width, bar_height);
     }
 
 }
@@ -149,7 +187,7 @@ impl GameObject for Rocket {
         }
 
         if self.shield_on {
-            if self.shield_time < 2.0 {
+            if self.shield_time < MAX_SHIELD_TIME {
                 self.shield_time += delta_t;
             }
         }
@@ -180,7 +218,7 @@ impl GameObject for Rocket {
             ctx.begin_path();
             ctx.arc(0.0, 0.0, self.radius() + 10.0, 0.0, std::f64::consts::PI * 2.0).unwrap();
             ctx.set_stroke_style_str( "rgba(0, 200, 255, 0.5)");
-            ctx.set_line_width( (2.0 - (self.shield_time / 2.0)) * 3.0);
+            ctx.set_line_width((MAX_SHIELD_TIME - (self.shield_time)) * (MAX_SHIELD_STROKE_WIDTH / MAX_SHIELD_TIME));
             ctx.stroke();
         }
 
