@@ -91,6 +91,16 @@ impl Rocket {
     fn is_shield_active( &self) -> bool {
         return self.shield_on && (self.shield_time > 0.0) && (self.shield_time < 2.0);
     }
+
+    fn render_score( &self, ctx: &CanvasRenderingContext2d) {
+        ctx.set_font("16px sans-serif");
+        ctx.set_fill_style_str( "black");
+        let score_text = format!("Score: {}", self.score);
+        ctx.fill_text(&score_text, self.score_pos.x, self.score_pos.y).unwrap();
+        let damage_text = format!("Damage: {}", self.damage);
+        ctx.fill_text(&damage_text, self.score_pos.x, self.score_pos.y + 20.0).unwrap();
+    }
+
 }
 
 impl GameObject for Rocket {
@@ -166,24 +176,17 @@ impl GameObject for Rocket {
         ).unwrap();
 
         // Draw a shield circle
-        if self.is_shield_active() {
+        if self.is_shield_active() && self.shield_time > 0.0 {
             ctx.begin_path();
             ctx.arc(0.0, 0.0, self.radius() + 10.0, 0.0, std::f64::consts::PI * 2.0).unwrap();
             ctx.set_stroke_style_str( "rgba(0, 200, 255, 0.5)");
-            ctx.set_line_width(3.0);
+            ctx.set_line_width( (2.0 - (self.shield_time / 2.0)) * 3.0);
             ctx.stroke();
         }
 
         ctx.restore();
 
-        // Draw the score at a fixed position
-        ctx.set_font("16px sans-serif");
-        ctx.set_fill_style_str( "black");
-        let score_text = format!("Score: {}", self.score);
-        ctx.fill_text(&score_text, self.score_pos.x, self.score_pos.y).unwrap();
-        let damage_text = format!("Damage: {}", self.damage);
-        ctx.fill_text(&damage_text, self.score_pos.x, self.score_pos.y + 20.0).unwrap();
-        
+        self.render_score(ctx);
     }
 
     fn radius( &self) -> f64 {
