@@ -123,20 +123,24 @@ impl Game {
     }
 
     fn clean_shapes( &mut self) {
-        self.shapes.retain( |x| !x.borrow_mut().is_expired());
+        self.shapes.retain( |x| !x.borrow().is_expired());
 
         let nof_asteroids = self.shapes.iter().filter(|obj| obj.borrow().get_type() == GameObjectType::Asteroid).count();
-        if nof_asteroids == 0 {
+        let nof_countdowns = self.shapes.iter().filter(|obj| obj.borrow().get_type() == GameObjectType::Countdown).count();
+        if nof_asteroids == 0 && nof_countdowns == 0{
             self.start_new_round();
         }
     }
 
     fn start_new_round( &mut self) {
-        let round_text = format!("Round : {}", self.round);
-        self.shapes.push( Rc::new( RefCell::new( Announcer { time: 0.0, position: Vector { x: self.game_area.width / 2.0 - 100.0, y: self.game_area.height / 2.0, }, text: round_text })));
-        self.shapes.push( Rc::new( RefCell::new( Countdown { time: 0.0, position: Vector { x: self.game_area.width / 2.0 - 100.0, y: self.game_area.height / 2.0 + 70.0 }, count: 3, text: "3".to_string() })));
-        self.shapes.extend( self.objfactory.create_asteroids( self.round * 2, self.game_area, self.round as f64 * 50.0));
+        let countdown = Rc::new( RefCell::new( Countdown { game: self as *mut Self, time: 0.0, position: Vector { x: self.game_area.width / 2.0 - 20.0, y: self.game_area.height / 2.0 - 8.0 }, count: 5, text: "5".to_string() }));
+
+        self.shapes.push( countdown);
         self.round += 1;
+    }
+
+    pub fn spawn_asteroids( &mut self) {
+        self.shapes.extend( self.objfactory.create_asteroids( self.round * 2, self.game_area, self.round as f64 * 50.0));
     }
 
     fn update_game_objects( &mut self) {
@@ -172,8 +176,8 @@ impl Game {
         self.shapes.extend(objects);
     }
 
-    fn render( &mut self) {
+    fn render( &self) {
         self.ctx.clear_rect(0.0, 0.0, self.game_area.width, self.game_area.height);
-        self.shapes.iter_mut().for_each(|shape| shape.borrow().render(&self.ctx));
+        self.shapes.iter().for_each(|shape| shape.borrow().render(&self.ctx));
     }
 }

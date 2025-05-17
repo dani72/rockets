@@ -1,4 +1,4 @@
-use web_sys::{ CanvasRenderingContext2d, HtmlImageElement};
+use web_sys::{ CanvasRenderingContext2d};
 use crate::vmath::Vector;
 use crate::game::GameObject;
 use crate::game::GameObjectType;
@@ -7,12 +7,14 @@ use std::any::Any;
 use crate::game::GameObjectFactory;
 use std::rc::Rc;
 use std::cell::RefCell;
+use crate::Game;
 
 pub struct Countdown {
     pub time: f64,
     pub position: Vector,
     pub count : i32,
     pub text: String,
+    pub game: *mut Game,
  }
 
 impl Countdown {
@@ -31,7 +33,7 @@ impl GameObject for Countdown {
     }
 
     fn get_type( &self) -> GameObjectType {
-        return GameObjectType::Announcer;
+        return GameObjectType::Countdown;
     }
 
     fn current_position(&self) -> Vector {
@@ -54,11 +56,17 @@ impl GameObject for Countdown {
             self.time = 0.0;
             self.format_count();
         }
+
+        if self.count == -1 {
+            unsafe {
+                (*self.game).spawn_asteroids();
+            }
+        }
     }
 
     fn render(&self, ctx: &CanvasRenderingContext2d) {
         ctx.set_font("48px sans-serif");
-        ctx.set_fill_style(&wasm_bindgen::JsValue::from_str("black"));
+        ctx.set_fill_style_str( "black");
         ctx.set_text_align("left");
         ctx.set_text_baseline("middle");
         ctx.set_global_alpha( 1.0 - self.time);
