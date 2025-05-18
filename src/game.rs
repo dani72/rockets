@@ -10,6 +10,64 @@ use crate::vmath::ZERO;
 use std::rc::Rc;
 use std::cell::RefCell;
 use crate::rocket::Rocket;
+use wasm_bindgen::prelude::*;
+
+#[wasm_bindgen]
+#[derive(Clone, Copy)]
+pub struct GamepadState {
+    pub gamepad_index: usize,
+    pub rocket_index: usize,
+    pub rotate: f64,
+    pub thrust: f64,
+    pub shield: bool,
+    pub fire: bool,
+}
+
+#[wasm_bindgen]
+impl GamepadState {
+   #[wasm_bindgen(constructor)]
+    pub fn new() -> GamepadState {
+        GamepadState {
+            gamepad_index: 0,
+            rocket_index: 0,
+            rotate: 0.0,
+            thrust: 0.0,
+            shield: false,
+            fire: false,
+        }
+    }
+}
+
+#[wasm_bindgen]
+pub struct GamepadStates {
+    inner: Vec<GamepadState>,
+}
+
+#[wasm_bindgen]
+impl GamepadStates {
+    #[wasm_bindgen(constructor)]
+    pub fn new() -> GamepadStates {
+        GamepadStates {
+            inner: Vec::new(),
+        }
+    }
+
+    pub fn push(&mut self, state: &GamepadState) {
+        self.inner.push( state.clone());
+    }
+
+    pub fn get(&self, index: usize) -> Option<GamepadState> {
+        self.inner.get(index).cloned()
+    }
+
+    pub fn len(&self) -> usize {
+        self.inner.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.inner.is_empty()
+    }
+}
 
 #[derive(PartialEq, Eq)]
 pub enum GameObjectType {

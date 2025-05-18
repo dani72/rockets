@@ -1,4 +1,4 @@
-use web_sys::{ CanvasRenderingContext2d, HtmlImageElement};
+use web_sys::{ CanvasRenderingContext2d};
 use crate::vmath::Vector;
 use crate::game::GameObject;
 use crate::game::GameObjectType;
@@ -44,7 +44,7 @@ impl GameObject for Announcer {
 
     fn render(&self, ctx: &CanvasRenderingContext2d) {
         ctx.set_font("48px sans-serif");
-        ctx.set_fill_style(&wasm_bindgen::JsValue::from_str("black"));
+        ctx.set_fill_style_str("black");
         ctx.set_text_align("left");
         ctx.set_text_baseline("middle");
         ctx.fill_text(&self.text, self.position.x, self.position.y).unwrap();

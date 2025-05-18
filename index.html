@@ -7,7 +7,7 @@
 <body>
     <canvas id="game-canvas" width="1400" height="800" style="border:1px solid black;"></canvas>
     <script type="module">
-        import init, { Game } from "./pkg/canvas_rust_game.js";
+        import init, { Game, GamepadStates, GamepadState } from "./pkg/canvas_rust_game.js";
 
         async function loadImage(src) {
             return new Promise((resolve, reject) => {
@@ -22,13 +22,6 @@
             try {
                 await init();
 
-                const playerControllers = {
-                    gamepad_rocket1 : null,
-                    index_rocket1 : null,
-                    gamepad_rocket2 : null,
-                    index_rocket2 : null,
-                }
-
                 const rocketThrustOn = await loadImage("./assets/rocket_thrust_on.png");
                 const rocketThrustOff = await loadImage("./assets/rocket_thrust_off.png");
                 const asteroid_small = await loadImage("./assets/asteroid_small.png");
@@ -38,6 +31,7 @@
                 const canvas = document.getElementById("game-canvas");
                 const ctx = canvas.getContext("2d");
 
+                const controllers = [];
                 const game = new Game( canvas.width, canvas.height, asteroid_small, asteroid_medium, asteroid_big, rocketThrustOn, rocketThrustOff, explosion, ctx);
 
                 window.addEventListener("gamepadconnected", (e) => {
@@ -50,39 +44,44 @@
 
                     const gamepadIndex = e.gamepad.index;
 
-                    if (playerControllers.gamepad_rocket1 === null) {
-                        playerControllers.gamepad_rocket1 = gamepadIndex;
-                        playerControllers.index_rocket1 = game.create_rocket( "red");
-                        console.log("Assigned to rocket1:", gamepadIndex, " - ", playerControllers.index_rocket1);
-                    } 
-                    else if (playerControllers.gamepad_rocket2 === null) {
-                        playerControllers.gamepad_rocket2 = gamepadIndex;
-                        playerControllers.index_rocket2 = game.create_rocket( "green");
-                        console.log("Assigned to rocket2:", gamepadIndex);
+                    const alreadyAssigned = controllers.some(controller => controller.gamepad_index === gamepadIndex);
+                    if (!alreadyAssigned) {
+                        const new_state = new GamepadState();
+                        new_state.gamepad_index = gamepadIndex;
+                        new_state.rocket_index = game.create_rocket("red");
+                        controllers.push(new_state);
+                        console.log("Assigned to rocket:", gamepadIndex);
                     }
                 });
 
-                function updateRocket( gamepad, index) {
-                    const rotate = gamepad.axes[0].toFixed(2);
-                    const thrust = gamepad.buttons[7].value;
-                    const fire = gamepad.buttons[0].pressed;
-                    const shield = gamepad.buttons[1].pressed;
+                function updateRockets() {
+                    const gamepads = navigator.getGamepads();
+                    const states = new GamepadStates();
 
-                    game.update_rocket( index, thrust, rotate, fire, shield);
+                    for (const state of controllers) {
+                        const gp = gamepads[state.gamepad_index];
+                        if (gp) {
+                            updateGamepadState(gp, state);
+                            states.push(state);
+                        }
+                    }
+
+                    return states;
+                }
+
+                function updateGamepadState( gamepad, state) {
+                    if (!gamepad || !state) return;
+                    state.rotate = gamepad.axes[0].toFixed(2);
+                    state.thrust = gamepad.buttons[7].value;
+                    state.fire = gamepad.buttons[0].pressed;
+                    state.shield = gamepad.buttons[1].pressed;
                 }
 
                 function animationLoop() {
                     try {
-                        game.animate_frame();
+                       const states = updateRockets();
 
-                        const gamepads = navigator.getGamepads();
-
-                        if( playerControllers.gamepad_rocket1 !== null) {
-                            updateRocket( gamepads[playerControllers.gamepad_rocket1], playerControllers.index_rocket1);
-                        }
-                        if( playerControllers.gamepad_rocket2 !== null) {
-                            updateRocket( gamepads[playerControllers.gamepad_rocket2], playerControllers.index_rocket2);
-                        }
+                        game.animate_frame( states);
 
                         requestAnimationFrame(animationLoop);
                     } 

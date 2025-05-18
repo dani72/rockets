@@ -65,7 +65,7 @@ impl GameObject for Countdown {
     }
 
     fn render(&self, ctx: &CanvasRenderingContext2d) {
-        ctx.set_font("48px sans-serif");
+        ctx.set_font("72px sans-serif");
         ctx.set_fill_style_str( "black");
         ctx.set_text_align("left");
         ctx.set_text_baseline("middle");

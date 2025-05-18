@@ -4,6 +4,7 @@ use std::f64::consts::FRAC_PI_2;
 use crate::game::GameObject;
 use crate::game::Area;
 use crate::game::GameObjectType;
+use crate::game::GamepadState;
 use crate::bullet::Bullet;
 use std::any::Any;
 use crate::game::GameObjectFactory;
@@ -33,12 +34,12 @@ pub struct Rocket {
  }
 
 impl Rocket {
-    pub fn update( &mut self, delta_t: f64, thrust: f64, rotate: f64, shield: bool, fire: bool) -> Vec<Rc<RefCell<dyn GameObject>>> {
-        self.thrust( thrust);
-        self.rotate( rotate);
-        self.shield( shield);
+    pub fn update( &mut self, delta_t: f64, state: &GamepadState) -> Vec<Rc<RefCell<dyn GameObject>>> {
+        self.thrust( state.thrust);
+        self.rotate( state.rotate);
+        self.shield( state.shield);
 
-        if fire {
+        if state.fire {
             return self.fire_on( delta_t)
         }
         else {

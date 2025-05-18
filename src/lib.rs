@@ -17,7 +17,8 @@ use game::GameObject;
 use rocket::Rocket;
 use game::Area;
 use game::GameObjectFactory;
-use crate::announcer::Announcer;
+use game::GamepadStates;
+use game::GamepadState;
 use crate::countdown::Countdown;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -43,7 +44,6 @@ pub struct Game {
     game_area: Area,
     ctx: CanvasRenderingContext2d,
     time: i64,
-    fire_time: i64,
     objfactory: GameObjectFactory,
     shapes: Vec<Rc<RefCell<dyn GameObject>>>,
     number_of_rockets: usize
@@ -77,7 +77,6 @@ impl Game {
             game_area: Area { width: game_width, height: game_height },
             ctx: rendering_context,
             time: Self::now_ms(),
-            fire_time: Self::now_ms(),
             objfactory: object_factory,
             shapes: vec![],
             number_of_rockets: 0
@@ -88,10 +87,16 @@ impl Game {
         Date::now() as i64
     }
 
-    pub fn animate_frame( &mut self)  -> Result<(), JsValue> {
-        self.update_game_objects();
+    pub fn animate_frame( &mut self, states: &GamepadStates)  -> Result<(), JsValue> {
+        let now = Self::now_ms();
+        let delta_t = (now - self.time) as f64 / 1000.0;
+
+        self.update_rockets( delta_t, states);
+        self.update_game_objects( delta_t);
         self.check_collisions();
         self.render();
+
+        self.time = now;
 
         return Ok(())
     }
@@ -107,16 +112,19 @@ impl Game {
         return self.number_of_rockets - 1;
     }
 
-    pub fn update_rocket( &mut self, index: usize, thrust: f64, rotate: f64, fire: bool, shield: bool) {
+    fn update_rockets( &mut self, delta_t: f64, states: &GamepadStates) {
+        for i in 0..states.len() {
+            if let Some(state) = states.get(i) {
+                self.update_rocket( delta_t, &state);
+            }
+        }
+    }
+
+    fn update_rocket( &mut self, delta_t: f64, state: &GamepadState) {
         let mut bullets: Vec<Rc<RefCell<dyn GameObject>>> = vec![];
 
-        if let Some( rocket) = self.shapes[index].borrow_mut().as_any_mut().downcast_mut::<Rocket>() {
-            let now = Self::now_ms();
-            let delta_t = (now - self.fire_time) as f64 / 1000.0;
-
-            bullets.extend( rocket.update( delta_t, thrust, rotate, shield, fire));
-
-            self.fire_time = now;
+        if let Some( rocket) = self.shapes[state.rocket_index].borrow_mut().as_any_mut().downcast_mut::<Rocket>() {
+            bullets.extend( rocket.update( delta_t, state));
         }
 
         self.shapes.extend( bullets);
@@ -143,13 +151,8 @@ impl Game {
         self.shapes.extend( self.objfactory.create_asteroids( self.round * 2, self.game_area, self.round as f64 * 50.0));
     }
 
-    fn update_game_objects( &mut self) {
-        let now = Self::now_ms();
-        let delta_t = (now - self.time) as f64 / 1000.0;
-        
+    fn update_game_objects( &mut self, delta_t : f64) {
         self.shapes.iter_mut().for_each(|shape| shape.borrow_mut().move_t( delta_t, self.game_area));
-        self.time = now;
-
         self.clean_shapes();
     }
 
@@ -164,11 +167,8 @@ impl Game {
                 let obj2 = &right[0];
 
                 if obj1.borrow().distance( &*obj2.borrow()) < (obj1.borrow().radius() + obj2.borrow().radius()) {
-                    let new_from_obj1 = obj1.borrow_mut().collision_with( obj2.borrow().get_type(), &self.objfactory);
-                    let new_from_obj2 = obj2.borrow_mut().collision_with( obj1.borrow().get_type(), &self.objfactory);
-
-                    objects.extend( new_from_obj1);
-                    objects.extend( new_from_obj2);
+                    objects.extend( obj1.borrow_mut().collision_with( obj2.borrow().get_type(), &self.objfactory));
+                    objects.extend( obj2.borrow_mut().collision_with( obj1.borrow().get_type(), &self.objfactory));
                 }
             }
         }
