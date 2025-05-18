@@ -54,7 +54,7 @@
                     }
                 });
 
-                function updateRockets() {
+                function getGamepadStates() {
                     const gamepads = navigator.getGamepads();
                     const states = new GamepadStates();
 
@@ -79,9 +79,7 @@
 
                 function animationLoop() {
                     try {
-                       const states = updateRockets();
-
-                        game.animate_frame( states);
+                        game.animate_frame( getGamepadStates());
 
                         requestAnimationFrame(animationLoop);
                     } 

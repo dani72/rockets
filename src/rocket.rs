@@ -37,7 +37,13 @@ impl Rocket {
     pub fn update( &mut self, delta_t: f64, state: &GamepadState) -> Vec<Rc<RefCell<dyn GameObject>>> {
         self.thrust( state.thrust);
         self.rotate( state.rotate);
-        self.shield( state.shield);
+
+        if state.shield {
+            self.shield_on( delta_t);
+        }
+        else {
+            self.shield_off( delta_t);
+        }
 
         if state.fire {
             return self.fire_on( delta_t)
@@ -102,14 +108,19 @@ impl Rocket {
         self.update_acc();
     }
 
-    fn shield( &mut self, shield: bool) {
-        if !self.shield_on && shield {
-            self.shield_on = true;
-            web_sys::console::log_1(&format!("Activate shield: {}/{}", self.shield_on, self.shield_time).into());
+    fn shield_on( &mut self, delta_t: f64) {
+        self.shield_on = true;
+
+        if self.shield_time < MAX_SHIELD_TIME {
+            self.shield_time += delta_t;
         }
-        else if self.shield_on && !shield {
-            self.shield_on = false;
-            web_sys::console::log_1(&format!("Deactivate shield: {}/{}", self.shield_on, self.shield_time).into());
+    }
+
+    fn shield_off( &mut self, delta_t: f64) {
+        self.shield_on = false;
+
+        if self.shield_time > 0.0 {
+            self.shield_time -= delta_t;
         }
     }
 
