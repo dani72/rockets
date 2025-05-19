@@ -1,28 +1,17 @@
-mod vmath;
-mod rocket;
-mod asteroid;
-mod game;
-mod myrand;
-mod explosion;
-mod bullet;
-mod announcer;
-mod countdown;
+mod utils;
+mod engine;
+mod components;
 
-use game::GameObjectType;
 use wasm_bindgen::prelude::*;
 use web_sys::{window, CanvasRenderingContext2d, HtmlImageElement};
 use js_sys::Date;
-use vmath::Vector;
-use game::GameObject;
-use rocket::Rocket;
-use game::Area;
-use game::GameObjectFactory;
-use game::GamepadStates;
-use game::GamepadState;
-use crate::countdown::Countdown;
+use crate::utils::Vector;
 use std::rc::Rc;
 use std::cell::RefCell;
 use std::vec;
+use crate::engine::*;
+use crate::components::*;
+
 
 pub fn clone_sprite( image: &HtmlImageElement) -> HtmlImageElement{
     let document = window().unwrap().document().unwrap();

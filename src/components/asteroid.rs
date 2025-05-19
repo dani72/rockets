@@ -1,10 +1,7 @@
 use web_sys::{ CanvasRenderingContext2d, HtmlImageElement};
-use crate::game::GameObjectType;
-use crate::vmath::Vector;
-use crate::game::GameObject;
-use crate::game::Area;
-use crate::game::GameObjectFactory;
-use crate::myrand::random_number;
+use crate::utils::Vector;
+use crate::engine::{GameObject, GameObjectType, GameObjectFactory, Area};
+use crate::utils::random_number;
 use std::any::Any;
 use std::rc::Rc;
 use std::cell::RefCell;
@@ -113,7 +110,7 @@ impl GameObject for Asteroid {
                 let perp = Vector { x: -base_dir.y, y: base_dir.x };
                 for _ in 0..2 {
                     let angle = (random_number() - 0.5) * std::f64::consts::PI / 2.0;
-                    let impulse = perp.rotate(angle).scale((random_number() * 50.0 + 30.0)); // slightly faster for smaller fragments
+                    let impulse = perp.rotate(angle).scale(random_number() * 50.0 + 30.0); // slightly faster for smaller fragments
                     let new_speed = self.speed.add(&impulse);
                     result.push(objfactory.create_asteroid_small(self.position, new_speed));
                 }

@@ -1,15 +1,12 @@
 use web_sys::{CanvasRenderingContext2d, HtmlImageElement};
-use crate::vmath::Vector;
-use crate::myrand::random_number_max;
-use crate::myrand::random_number;
+use crate::utils::Vector;
+use crate::utils::random_number_max;
+use crate::utils::random_number;
 use std::any::Any;
-use crate::asteroid::Asteroid;
-use crate::asteroid::AsteroidSize;
-use crate::explosion::Explosion;
-use crate::vmath::ZERO;
+use crate::components::{ Asteroid, AsteroidSize, Explosion, Rocket};
+use crate::utils::ZERO;
 use std::rc::Rc;
 use std::cell::RefCell;
-use crate::rocket::Rocket;
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
