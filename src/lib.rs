@@ -33,7 +33,7 @@ pub struct Game {
     game_area: Area,
     ctx: CanvasRenderingContext2d,
     time: i64,
-    objfactory: GameObjectFactory,
+    objfactory: Rc<RefCell<GameObjectFactory>>,
     shapes: Vec<Rc<RefCell<dyn GameObject>>>,
     number_of_rockets: usize
 }
@@ -52,14 +52,14 @@ impl Game {
         explosion_sprite: HtmlImageElement,
         rendering_context: CanvasRenderingContext2d,
     ) -> Game {
-        let object_factory = GameObjectFactory {
+        let object_factory = Rc::new( RefCell::new( GameObjectFactory {
             asteroid_small_image: ass,
             asteroid_medium_image: ams,
             asteroid_large_image: als,
             explosion_image: explosion_sprite,
             rocket_thrust_on_image: rocket_thrust_on,
             rocket_thrust_off_image: rocket_thrust_off
-        };
+        }));
         
         Game {
             round: 1,
@@ -93,7 +93,7 @@ impl Game {
     pub fn create_rocket( &mut self, color: String) -> usize {
         let position = Vector { x: (self.game_area.width / 3.0) + self.number_of_rockets as f64 * 50.0, y: 200.0 };
         let score_position = Vector { x: 50.0 + self.number_of_rockets as f64 * 150.0, y: 50.0 };
-        let rocket = self.objfactory.create_rocket( position, score_position, color);
+        let rocket = self.objfactory.borrow().create_rocket( position, score_position, color);
 
         self.shapes.insert( self.number_of_rockets, rocket);
         self.number_of_rockets += 1;
@@ -137,7 +137,7 @@ impl Game {
     }
 
     pub fn spawn_asteroids( &mut self) {
-        self.shapes.extend( self.objfactory.create_asteroids( self.round * 2, self.game_area, self.round as f64 * 50.0));
+        self.shapes.extend( self.objfactory.borrow().create_asteroids( self.round * 2, self.game_area, self.round as f64 * 50.0));
     }
 
     fn update_game_objects( &mut self, delta_t : f64) {
@@ -156,8 +156,8 @@ impl Game {
                 let obj2 = &right[0];
 
                 if obj1.borrow().distance( &*obj2.borrow()) < (obj1.borrow().radius() + obj2.borrow().radius()) {
-                    objects.extend( obj1.borrow_mut().collision_with( obj2.borrow().get_type(), &self.objfactory));
-                    objects.extend( obj2.borrow_mut().collision_with( obj1.borrow().get_type(), &self.objfactory));
+                    objects.extend( obj1.borrow_mut().collision_with( obj2.borrow().get_type(), &self.objfactory.borrow()));
+                    objects.extend( obj2.borrow_mut().collision_with( obj1.borrow().get_type(), &self.objfactory.borrow()));
                 }
             }
         }
