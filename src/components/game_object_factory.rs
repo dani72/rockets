@@ -13,15 +13,34 @@ use crate::utils::random_number_max;
 use crate::utils::ZERO;
 
 pub struct GameObjectFactory {
-    pub asteroid_small_image: HtmlImageElement,
-    pub asteroid_medium_image: HtmlImageElement,
-    pub asteroid_large_image: HtmlImageElement,
-    pub explosion_image: HtmlImageElement,
-    pub rocket_thrust_on_image: HtmlImageElement,
-    pub rocket_thrust_off_image: HtmlImageElement,
+    asteroid_small_image: HtmlImageElement,
+    asteroid_medium_image: HtmlImageElement,
+    asteroid_large_image: HtmlImageElement,
+    explosion_image: HtmlImageElement,
+    rocket_thrust_on_image: HtmlImageElement,
+    rocket_thrust_off_image: HtmlImageElement,
 }
 
 impl GameObjectFactory {
+
+    pub fn new(
+        asteroid_small_image: HtmlImageElement,
+        asteroid_medium_image: HtmlImageElement,
+        asteroid_large_image: HtmlImageElement,
+        explosion_image: HtmlImageElement,
+        rocket_thrust_on_image: HtmlImageElement,
+        rocket_thrust_off_image: HtmlImageElement,
+    ) -> Self {
+        GameObjectFactory {
+            asteroid_small_image,
+            asteroid_medium_image,
+            asteroid_large_image,
+            explosion_image,
+            rocket_thrust_on_image,
+            rocket_thrust_off_image,
+        }
+    }    
+
     pub fn create_asteroid_small( &self, position: Vector, speed: Vector) -> Rc<RefCell<dyn GameObject>> {
         Rc::new( RefCell::new( Asteroid {
             size: AsteroidSize::Small,
@@ -74,8 +93,10 @@ impl GameObjectFactory {
         let mut asteroids = vec![];
 
         while i < nof  {
-            let asteroid = self.create_asteroid_large( Vector { x: random_number_max( area.width as f64), y: random_number_max( area.height as f64) }, Vector { x: max_speed * random_number(), y: max_speed * random_number()});
-            asteroids.push(asteroid);
+            let position = Vector { x: random_number_max( area.width as f64), y: random_number_max( area.height as f64) };
+            let speed = Vector { x: max_speed * random_number(), y: max_speed * random_number()};
+
+            asteroids.push( self.create_asteroid_large( position, speed));
 
             i+=1;
         }

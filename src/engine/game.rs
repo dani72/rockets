@@ -128,14 +128,14 @@ impl Game {
         explosion_sprite: HtmlImageElement,
         rendering_context: CanvasRenderingContext2d,
     ) -> Game {
-        let object_factory = Rc::new( RefCell::new( GameObjectFactory {
-            asteroid_small_image: ass,
-            asteroid_medium_image: ams,
-            asteroid_large_image: als,
-            explosion_image: explosion_sprite,
-            rocket_thrust_on_image: rocket_thrust_on,
-            rocket_thrust_off_image: rocket_thrust_off
-        }));
+        let object_factory = Rc::new(RefCell::new( GameObjectFactory::new(
+            ass,
+            ams,
+            als,
+            explosion_sprite,
+            rocket_thrust_on,
+            rocket_thrust_off,
+        )));
         
         Game {
             round: 1,
