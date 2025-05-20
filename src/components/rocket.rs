@@ -1,8 +1,9 @@
 use web_sys::{ CanvasRenderingContext2d, HtmlImageElement};
 use crate::utils::Vector;
 use std::f64::consts::FRAC_PI_2;
-use crate::engine::{GameObject, GameObjectType, GameObjectFactory, Area, GamepadState};
+use crate::engine::{GameObject, GameObjectType, Area, GamepadState};
 use crate::components::bullet::Bullet;
+use crate::components::GameObjectFactory;
 use std::any::Any;
 use std::rc::Rc;
 use std::cell::RefCell;

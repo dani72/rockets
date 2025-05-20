@@ -1,6 +1,7 @@
 use web_sys::{ CanvasRenderingContext2d, HtmlImageElement};
 use crate::utils::Vector;
-use crate::engine::{GameObject, GameObjectType, GameObjectFactory, Area};
+use crate::engine::{GameObject, GameObjectType, Area};
+use crate::GameObjectFactory;
 use std::any::Any;
 use std::rc::Rc;
 use std::cell::RefCell;

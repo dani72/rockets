@@ -1,10 +1,11 @@
 use web_sys::{ CanvasRenderingContext2d};
 use crate::utils::Vector;
-use crate::engine::{GameObject, GameObjectType, GameObjectFactory, Area};
+use crate::engine::{GameObject, GameObjectType, Area};
 use std::any::Any;
 use std::rc::Rc;
 use std::cell::RefCell;
 use crate::Game;
+use crate::GameObjectFactory;
 
 pub struct Countdown {
     pub time: f64,

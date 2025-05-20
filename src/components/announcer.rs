@@ -1,9 +1,10 @@
 use web_sys::{ CanvasRenderingContext2d};
 use crate::utils::Vector;
-use crate::engine::{GameObject, GameObjectType, GameObjectFactory, Area};
+use crate::engine::{GameObject, GameObjectType, Area};
 use std::any::Any;
 use std::rc::Rc;
 use std::cell::RefCell;
+use crate::GameObjectFactory;
 pub struct Announcer {
     pub time: f64,
     pub position: Vector,
