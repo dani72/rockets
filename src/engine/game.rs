@@ -6,7 +6,6 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use wasm_bindgen::prelude::*;
 use crate::components::GameObjectFactory;
-use crate::components::Countdown;
 use crate::components::Rocket;
 
 #[wasm_bindgen]
@@ -189,7 +188,7 @@ impl Game {
         let mut bullets: Vec<Rc<RefCell<dyn GameObject>>> = vec![];
 
         if let Some( rocket) = self.shapes[state.rocket_index].borrow_mut().as_any_mut().downcast_mut::<Rocket>() {
-            bullets.extend( rocket.update( delta_t, state));
+            bullets.extend( rocket.update( delta_t, state, &self.objfactory.borrow()));
         }
 
         self.shapes.extend( bullets);
@@ -206,9 +205,11 @@ impl Game {
     }
 
     fn start_new_round( &mut self) {
-        let countdown = Rc::new( RefCell::new( Countdown { game: self as *mut Self, time: 0.0, position: Vector { x: self.game_area.width / 2.0 - 20.0, y: self.game_area.height / 2.0 - 8.0 }, count: 5, text: "5".to_string() }));
+        let position = Vector { x: self.game_area.width / 2.0 - 20.0, y: self.game_area.height / 2.0 - 8.0 };
+        let game = self as *mut Self;
 
-        self.shapes.push( countdown);
+        self.shapes.push( self.objfactory.borrow().create_countdown( game, position, 6));
+
         self.round += 1;
     }
 

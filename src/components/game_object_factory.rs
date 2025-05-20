@@ -4,9 +4,12 @@ use std::rc::Rc;
 use std::cell::RefCell;
 use crate::components::asteroid::Asteroid;
 use crate::components::asteroid::AsteroidSize;
-use crate::Explosion;
-use crate::Rocket;
+use crate::components::explosion::Explosion;
+use crate::components::rocket::Rocket;
+use crate::components::countdown::Countdown;
+use crate::components::bullet::Bullet;
 use crate::GameObject;
+use crate::Game;
 use crate::Area;
 use crate::utils::random_number;
 use crate::utils::random_number_max;
@@ -121,6 +124,27 @@ impl GameObjectFactory {
             shield_time: 0.0,
             bullet_color: color,
             burst_time: 0.0,
+        }))
+    }
+
+    pub fn create_countdown( &self, game: *mut Game, position: Vector, count: i32) -> Rc<RefCell<dyn GameObject>> {
+        Rc::new( RefCell::new( Countdown {
+            game: game,
+            position: position,
+            time: 3.0,
+            count: count,
+            text: "0".to_string()
+        }))
+    }
+
+    pub fn create_bullet( &self, rocket: *mut Rocket, position: Vector, speed: Vector, color: String) -> Rc<RefCell<dyn GameObject>> {
+        Rc::new( RefCell::new( Bullet {
+            expired: false,
+            start_position: position,
+            position: position,
+            speed: speed,
+            color: color,
+            rocket: rocket,
         }))
     }
 }

@@ -2,7 +2,7 @@ use web_sys::{ CanvasRenderingContext2d, HtmlImageElement};
 use crate::utils::Vector;
 use std::f64::consts::FRAC_PI_2;
 use crate::engine::{GameObject, GameObjectType, Area, GamepadState};
-use crate::components::bullet::Bullet;
+use std::f64::consts::PI;
 use crate::components::GameObjectFactory;
 use std::any::Any;
 use std::rc::Rc;
@@ -31,7 +31,7 @@ pub struct Rocket {
  }
 
 impl Rocket {
-    pub fn update( &mut self, delta_t: f64, state: &GamepadState) -> Vec<Rc<RefCell<dyn GameObject>>> {
+    pub fn update( &mut self, delta_t: f64, state: &GamepadState, objfactory: &GameObjectFactory) -> Vec<Rc<RefCell<dyn GameObject>>> {
         self.thrust( state.thrust);
         self.rotate( state.rotate);
 
@@ -43,7 +43,7 @@ impl Rocket {
         }
 
         if state.fire {
-            return self.fire_on( delta_t)
+            return self.fire_on( delta_t, objfactory)
         }
         else {
             self.fire_off( delta_t)
@@ -60,7 +60,7 @@ impl Rocket {
         }
     }
 
-    pub fn fire_on( &mut self, delta_t: f64) -> Vec<Rc<RefCell<dyn GameObject>>> {
+    pub fn fire_on( &mut self, delta_t: f64, objfactory: &GameObjectFactory) -> Vec<Rc<RefCell<dyn GameObject>>> {
         if self.burst_time < MAX_BURST_TIME {
             self.burst_time += delta_t;
         }
@@ -71,17 +71,9 @@ impl Rocket {
             let rotvec = Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale( 25.0);
             let tempo = Vector::new((self.rotation - FRAC_PI_2).cos(), (self.rotation - FRAC_PI_2).sin()).scale( 250.0).add( &self.speed);
             let start = self.position.add( &rotvec);
+            let bullet = objfactory.create_bullet( self as *mut Self, start, tempo, self.bullet_color.to_string());
 
-            let bullet = Bullet {
-                expired: false,
-                start_position: start,
-                position: start,
-                speed: tempo,
-                color: self.bullet_color.to_string(),
-                rocket: self as *mut Self,
-            };
-
-            return vec![ Rc::new( RefCell::new( bullet))];
+            return vec![ bullet];
         }
         else {
             self.last_shot += delta_t;
@@ -212,8 +204,8 @@ impl GameObject for Rocket {
         let sprite = if self.thrust > 0.0 { &self.sprite_on } else { &self.sprite_off };
 
         ctx.save();
-        ctx.translate(self.position.x, self.position.y).unwrap();          // Move to sprite position
-        ctx.rotate( self.rotation).unwrap();        // Rotate around that point
+        ctx.translate(self.position.x, self.position.y).unwrap();
+        ctx.rotate( self.rotation).unwrap();
         ctx.draw_image_with_html_image_element_and_dw_and_dh(
             &sprite,
             - (sprite.width() as f64 / 2.0),
@@ -225,7 +217,7 @@ impl GameObject for Rocket {
         // Draw a shield circle
         if self.is_shield_active() && self.shield_time > 0.0 {
             ctx.begin_path();
-            ctx.arc(0.0, 0.0, self.radius() + 10.0, 0.0, std::f64::consts::PI * 2.0).unwrap();
+            ctx.arc(0.0, 0.0, self.radius() + 10.0, 0.0, PI * 2.0).unwrap();
             ctx.set_stroke_style_str( "rgba(0, 200, 255, 0.5)");
             ctx.set_line_width((MAX_SHIELD_TIME - (self.shield_time)) * (MAX_SHIELD_STROKE_WIDTH / MAX_SHIELD_TIME));
             ctx.stroke();
@@ -241,28 +233,28 @@ impl GameObject for Rocket {
     }
 
     fn collision_with(&mut self, objtype: GameObjectType, objfactory: &GameObjectFactory) -> Vec<Rc<RefCell<dyn GameObject>>> {
-        if objtype == GameObjectType::Asteroid {
-            if !self.is_shield_active() {
-                self.damage += 100;
+        match objtype {
+            GameObjectType::Asteroid => {
+                if !self.is_shield_active() {
+                    self.damage += 100;
+                }
+                return vec![objfactory.create_explosion(self.position)];
             }
-
-            return vec![objfactory.create_explosion(self.position)];
-        }
-        else if objtype == GameObjectType::Bullet {
-            if !self.is_shield_active() {
-                self.damage += 50;
+            GameObjectType::Bullet => {
+                if !self.is_shield_active() {
+                    self.damage += 50;
+                } else {
+                    self.shield_time += 0.01;
+                }
             }
-            else {
-                self.shield_time += 0.01;
+            GameObjectType::Rocket => {
+                if !self.is_shield_active() {
+                    self.damage += 500;
+                } else {
+                    self.shield_time += 0.05;
+                }
             }
-        }
-        else if objtype == GameObjectType::Rocket {
-            if !self.is_shield_active() {
-                self.damage += 500;
-            }
-            else {
-                self.shield_time += 0.05;
-            }
+            _ => {}
         }
         vec![]
     }
